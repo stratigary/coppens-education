@@ -1,0 +1,28 @@
+name: Refresh saved calendars
+
+on:
+  schedule:
+    - cron: '43 8 * * *' # nightly, before the rebuild
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run snapshot
+      - name: Commit changes
+        run: |
+          if [ -n "$(git status --porcelain public/data/fallback)" ]; then
+            git config user.name "calendar-bot"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add public/data/fallback
+            git commit -m "Refresh saved calendars"
+            git push
+          fi

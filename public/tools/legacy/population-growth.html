@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Population Growth Simulator</title>
+<style>
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: transparent; 
+    margin: 0; 
+    padding: 10px; 
+    color: #333; 
+  }
+  .calculator-container { 
+    max-width: 700px; 
+    margin: 0 auto; 
+    background: #ffffff; 
+    padding: 25px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    border-top: 6px solid #689f38; /* Earthy green theme */
+  }
+  h2 { 
+    color: #33691e; 
+    margin-top: 0; 
+    text-align: center; 
+    font-size: 22px;
+  }
+  .control-panel {
+    background: #f1f8e9;
+    padding: 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border: 1px solid #c5e1a5;
+  }
+  .input-group { margin-bottom: 15px; }
+  .input-group:last-child { margin-bottom: 0; }
+  .input-group label {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #558b2f;
+  }
+  .val-display { color: #33691e; font-family: monospace; font-size: 1.1em; }
+  input[type="range"] {
+    width: 100%;
+    accent-color: #689f38;
+  }
+  
+  .graph-container {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 15px;
+    position: relative;
+  }
+  canvas {
+    width: 100%;
+    height: 350px;
+    display: block;
+  }
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 15px;
+    font-size: 0.9em;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .box { width: 15px; height: 15px; border-radius: 3px; }
+  .box.exp { background: #e53935; }
+  .box.log { background: #43a047; }
+  .box.k { background: transparent; border-bottom: 2px dashed #9e9e9e; height: 0; width: 20px;}
+</style>
+</head>
+<body>
+
+<div class="calculator-container">
+  <h2>Population Growth Simulator</h2>
+  
+  <div class="control-panel">
+    <div class="input-group">
+      <label>
+        <span>Initial Population (N&sub0;)</span>
+        <span class="val-display" id="n0-val">10</span>
+      </label>
+      <input type="range" id="n0-slider" min="2" max="100" value="10" step="1" oninput="updateGraph()">
+    </div>
+    
+    <div class="input-group">
+      <label>
+        <span>Intrinsic Growth Rate (r)</span>
+        <span class="val-display" id="r-val">0.15</span>
+      </label>
+      <input type="range" id="r-slider" min="0.01" max="0.5" value="0.15" step="0.01" oninput="updateGraph()">
+    </div>
+
+    <div class="input-group">
+      <label>
+        <span>Carrying Capacity (K)</span>
+        <span class="val-display" id="k-val">500</span>
+      </label>
+      <input type="range" id="k-slider" min="100" max="1000" value="500" step="10" oninput="updateGraph()">
+    </div>
+  </div>
+
+  <div class="graph-container">
+    <canvas id="popChart"></canvas>
+    <div class="legend">
+      <div class="legend-item"><div class="box exp"></div> Exponential</div>
+      <div class="legend-item"><div class="box log"></div> Logistic</div>
+      <div class="legend-item"><div class="box k"></div> Capacity (K)</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('popChart');
+  const ctx = canvas.getContext('2d');
+
+  // Fix resolution for high DPI displays
+  function setupCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    return rect;
+  }
+
+  function updateGraph() {
+    const rect = setupCanvas();
+    const width = rect.width;
+    const height = rect.height;
+
+    const N0 = parseFloat(document.getElementById('n0-slider').value);
+    const r = parseFloat(document.getElementById('r-slider').value);
+    const K = parseFloat(document.getElementById('k-slider').value);
+
+    // Update Text displays
+    document.getElementById('n0-val').innerText = N0;
+    document.getElementById('r-val').innerText = r.toFixed(2);
+    document.getElementById('k-val').innerText = K;
+
+    // Chart Settings
+    const maxTime = 50;
+    // Set Y max slightly above K, but high enough to show some exponential takeoff
+    const maxY = K * 1.5; 
+    
+    const padding = 40;
+    const graphWidth = width - padding * 2;
+    const graphHeight = height - padding * 2;
+
+    // Clear Canvas
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw Axes
+    ctx.beginPath();
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 2;
+    ctx.moveTo(padding, padding);
+    ctx.lineTo(padding, height - padding);
+    ctx.lineTo(width - padding, height - padding);
+    ctx.stroke();
+
+    // Draw Labels
+    ctx.fillStyle = '#666';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Time (t)', width / 2, height - 10);
+    
+    ctx.save();
+    ctx.translate(15, height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Population (N)', 0, 0);
+    ctx.restore();
+
+    // Draw K Line (Carrying Capacity)
+    const kY = (height - padding) - ((K / maxY) * graphHeight);
+    ctx.beginPath();
+    ctx.strokeStyle = '#9e9e9e';
+    ctx.setLineDash([5, 5]);
+    ctx.lineWidth = 2;
+    ctx.moveTo(padding, kY);
+    ctx.lineTo(width - padding, kY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Label K
+    ctx.fillStyle = '#9e9e9e';
+    ctx.textAlign = 'left';
+    ctx.fillText('K = ' + K, width - padding + 5, kY + 4);
+
+    // Plot Data
+    ctx.lineWidth = 3;
+
+    // --- Exponential Line ---
+    ctx.beginPath();
+    ctx.strokeStyle = '#e53935'; // Red
+    for (let t = 0; t <= maxTime; t++) {
+      let N = N0 * Math.exp(r * t);
+      
+      let x = padding + (t / maxTime) * graphWidth;
+      let y = (height - padding) - ((N / maxY) * graphHeight);
+      
+      if (t === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+      
+      // Stop drawing if it flies off the top of the canvas
+      if (y < 0) break; 
+    }
+    ctx.stroke();
+
+    // --- Logistic Line ---
+    ctx.beginPath();
+    ctx.strokeStyle = '#43a047'; // Green
+    for (let t = 0; t <= maxTime; t++) {
+      let N = K / (1 + ((K - N0) / N0) * Math.exp(-r * t));
+      
+      let x = padding + (t / maxTime) * graphWidth;
+      let y = (height - padding) - ((N / maxY) * graphHeight);
+      
+      if (t === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // Handle resizing
+  window.addEventListener('resize', updateGraph);
+  
+  // Initial draw (slight delay to let CSS load fonts/dimensions)
+  setTimeout(updateGraph, 100);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simpson's Reciprocal Index – Gopher Tortoise Lab</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: transparent;
+    margin: 0;
+    padding: 10px;
+    color: #333;
+  }
+  .calculator-container {
+    max-width: 780px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-top: 6px solid #4CAF50;
+  }
+  h2 {
+    color: #2c3e50;
+    margin: 0 0 4px 0;
+    text-align: center;
+    font-size: 22px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #666;
+    font-size: 0.95em;
+    margin: 0 0 18px 0;
+  }
+  .formula-box {
+    background: #e8f5e9;
+    padding: 18px;
+    border-radius: 6px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2e7d32;
+  }
+  .formula-box span.equation {
+    font-size: 1.4em;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+  .definitions {
+    text-align: left;
+    background: #ffffff;
+    padding: 14px;
+    border-radius: 4px;
+    border: 1px solid #c8e6c9;
+  }
+  .definitions p {
+    margin: 0 0 8px 0;
+    font-weight: bold;
+    color: #388e3c;
+  }
+  .definitions ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+    font-size: 0.9em;
+    color: #444;
+  }
+  .definitions li { margin-bottom: 6px; line-height: 1.4; }
+  .definitions li:last-child { margin-bottom: 0; }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 600px;
+    font-size: 15px;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 6px 8px;
+    text-align: center;
+  }
+  thead th {
+    background: #f1f8f1;
+    color: #2c3e50;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  thead th.group-present { background: #e8f5e9; }
+  thead th.group-absent  { background: #fff3e0; }
+  td.animal {
+    text-align: left;
+    white-space: nowrap;
+    background: #fafafa;
+  }
+  td.animal .tag {
+    font-size: 0.8em;
+    color: #888;
+  }
+  td.animal .tag.threat  { color: #c62828; }
+  td.animal .tag.invasive { color: #6a1b9a; }
+  td.calc {
+    color: #555;
+    background: #fbfbfb;
+    font-variant-numeric: tabular-nums;
+    min-width: 70px;
+  }
+  input[type="number"] {
+    width: 70px;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 15px;
+    text-align: center;
+  }
+  input[type="number"]:focus {
+    outline: 2px solid #4CAF50;
+    outline-offset: 1px;
+    border-color: #4CAF50;
+  }
+  input.invalid { border-color: #e53935; background: #fef2f2; }
+  tfoot td {
+    background: #f5f5f5;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  tfoot td.label { text-align: left; }
+
+  button {
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-row { display: flex; gap: 10px; }
+  .btn-calc {
+    background: #4CAF50;
+    color: white;
+    padding: 14px 15px;
+    flex: 2;
+    font-size: 18px;
+    font-weight: bold;
+    min-height: 48px;
+  }
+  .btn-calc:hover { background: #388E3C; }
+  .btn-clear {
+    background: #9e9e9e;
+    color: white;
+    padding: 14px 15px;
+    flex: 1;
+    font-weight: bold;
+    min-height: 48px;
+  }
+  .btn-clear:hover { background: #757575; }
+
+  .error-msg {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 15px;
+    display: none;
+    text-align: center;
+  }
+
+  .results {
+    display: none;
+    margin-top: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .result-box {
+    flex: 1 1 240px;
+    padding: 15px;
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid #e0e0e0;
+  }
+  .result-box.present { background: #f1f8f1; border-color: #c8e6c9; }
+  .result-box.absent  { background: #fff8ef; border-color: #ffe0b2; }
+  .result-title { font-weight: 600; color: #2c3e50; }
+  .result-value {
+    font-size: 30px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-top: 4px;
+  }
+  .breakdown {
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 10px;
+    text-align: left;
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px dashed #ccc;
+    line-height: 1.5;
+  }
+  .comparison {
+    flex-basis: 100%;
+    padding: 12px 15px;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 6px;
+    color: #0d47a1;
+    text-align: center;
+    font-size: 0.95em;
+  }
+  .note {
+    font-size: 0.85em;
+    color: #777;
+    margin-top: 15px;
+    text-align: center;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+
+<div class="calculator-container">
+  <h2>Simpson's Reciprocal Index</h2>
+  <p class="subtitle">Gopher tortoises present vs. absent</p>
+
+  <div class="formula-box">
+    <span class="equation">D = N(N &minus; 1) &divide; &Sigma;n(n &minus; 1)</span>
+    <div class="definitions">
+      <p>Where:</p>
+      <ul>
+        <li><strong>D</strong> = Diversity index (higher = more diverse)</li>
+        <li><strong>N</strong> = Total number of organisms of all species (add the n column)</li>
+        <li><strong>n</strong> = Number of organisms of one particular species</li>
+        <li><strong>&Sigma;</strong> = "Sum of" &mdash; calculate n(n&minus;1) for each species and add them all together.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="error-msg" id="errorMsg" role="alert"></div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th rowspan="2">Animal</th>
+          <th colspan="2" class="group-present">Gopher Tortoises Present</th>
+          <th colspan="2" class="group-absent">Gopher Tortoises Absent</th>
+        </tr>
+        <tr>
+          <th class="group-present">n</th>
+          <th class="group-present">n(n&minus;1)</th>
+          <th class="group-absent">n</th>
+          <th class="group-absent">n(n&minus;1)</th>
+        </tr>
+      </thead>
+      <tbody id="speciesBody"></tbody>
+      <tfoot>
+        <tr>
+          <td class="label">N (sum of n)</td>
+          <td id="N_present">0</td>
+          <td rowspan="2" id="sum_present">&Sigma; = 0</td>
+          <td id="N_absent">0</td>
+          <td rowspan="2" id="sum_absent">&Sigma; = 0</td>
+        </tr>
+        <tr>
+          <td class="label">N(N&minus;1)</td>
+          <td id="NN_present">0</td>
+          <td id="NN_absent">0</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-calc" onclick="calculateIndex()">Calculate Both Indexes (D)</button>
+    <button class="btn-clear" onclick="clearAll()">Clear</button>
+  </div>
+
+  <div class="results" id="results">
+    <div class="result-box present">
+      <div class="result-title">Tortoises Present</div>
+      <div class="result-value" id="D_present">&ndash;</div>
+      <div class="breakdown" id="breakdown_present"></div>
+    </div>
+    <div class="result-box absent">
+      <div class="result-title">Tortoises Absent</div>
+      <div class="result-value" id="D_absent">&ndash;</div>
+      <div class="breakdown" id="breakdown_absent"></div>
+    </div>
+    <div class="comparison" id="comparison"></div>
+  </div>
+
+  <p class="note">Leave a box blank or enter 0 if that species was not found. The n(n&minus;1) columns fill in as you type so you can check your worksheet.</p>
+</div>
+
+<script>
+  var SPECIES = [
+    { name: "Gopher tortoise", tag: "threatened", cls: "threat" },
+    { name: "Mice" },
+    { name: "Rabbits" },
+    { name: "Bobcat" },
+    { name: "Armadillo" },
+    { name: "Burrowing owl", tag: "threatened", cls: "threat" },
+    { name: "Hawk" },
+    { name: "Quail" },
+    { name: "Fire ant nests", tag: "invasive", cls: "invasive" },
+    { name: "American toad" },
+    { name: "Gopher frog" },
+    { name: "Green anole" },
+    { name: "Brown anole", tag: "invasive", cls: "invasive" },
+    { name: "Indigo snake" },
+    { name: "Diamondback rattlesnake" },
+    { name: "Bartram's Ixia plant", tag: "endangered", cls: "threat" },
+    { name: "Cogongrass", tag: "invasive", cls: "invasive" }
+  ];
+
+  function buildTable() {
+    var body = document.getElementById('speciesBody');
+    SPECIES.forEach(function (sp, i) {
+      var tr = document.createElement('tr');
+      var tag = sp.tag ? ' <span class="tag ' + sp.cls + '">(' + sp.tag + ')</span>' : '';
+      tr.innerHTML =
+        '<td class="animal">' + sp.name + tag + '</td>' +
+        '<td><input type="number" min="0" step="1" class="n-present" data-row="' + i + '" aria-label="' + sp.name + ', tortoises present, n"></td>' +
+        '<td class="calc" id="p_calc_' + i + '"></td>' +
+        '<td><input type="number" min="0" step="1" class="n-absent" data-row="' + i + '" aria-label="' + sp.name + ', tortoises absent, n"></td>' +
+        '<td class="calc" id="a_calc_' + i + '"></td>';
+      body.appendChild(tr);
+    });
+    var inputs = body.querySelectorAll('input');
+    for (var k = 0; k < inputs.length; k++) {
+      inputs[k].addEventListener('input', updateLive);
+    }
+  }
+
+  // Returns {value, valid}. Blank counts as 0.
+  function readCount(input) {
+    var raw = input.value.trim();
+    if (raw === '') return { value: 0, valid: true };
+    var num = Number(raw);
+    if (!Number.isInteger(num) || num < 0) return { value: 0, valid: false };
+    return { value: num, valid: true };
+  }
+
+  function tallyColumn(selector, calcPrefix) {
+    var inputs = document.querySelectorAll(selector);
+    var N = 0, sum = 0, richness = 0, bad = 0;
+    for (var i = 0; i < inputs.length; i++) {
+      var r = readCount(inputs[i]);
+      var cell = document.getElementById(calcPrefix + inputs[i].dataset.row);
+      inputs[i].classList.toggle('invalid', !r.valid);
+      if (!r.valid) { bad++; cell.textContent = '?'; continue; }
+      var nn = r.value * (r.value - 1);
+      cell.textContent = inputs[i].value.trim() === '' ? '' : nn;
+      N += r.value;
+      sum += nn;
+      if (r.value > 0) richness++;
+    }
+    return { N: N, sum: sum, NN: N * (N - 1), richness: richness, bad: bad };
+  }
+
+  function updateLive() {
+    clearError();
+    var p = tallyColumn('.n-present', 'p_calc_');
+    var a = tallyColumn('.n-absent', 'a_calc_');
+    document.getElementById('N_present').textContent = p.N;
+    document.getElementById('NN_present').textContent = p.NN;
+    document.getElementById('sum_present').innerHTML = '&Sigma; = ' + p.sum;
+    document.getElementById('N_absent').textContent = a.N;
+    document.getElementById('NN_absent').textContent = a.NN;
+    document.getElementById('sum_absent').innerHTML = '&Sigma; = ' + a.sum;
+    return { p: p, a: a };
+  }
+
+  function computeD(col) {
+    if (col.N <= 1) return { ok: false, msg: 'Need more than 1 organism total.' };
+    if (col.sum === 0) return { ok: false, msg: 'Undefined: every species has only 1 individual, so &Sigma;n(n&minus;1) = 0 and you cannot divide by zero.' };
+    return { ok: true, D: col.NN / col.sum };
+  }
+
+  function renderResult(col, idPrefix) {
+    var res = computeD(col);
+    var valEl = document.getElementById('D_' + idPrefix);
+    var bdEl = document.getElementById('breakdown_' + idPrefix);
+    if (!res.ok) {
+      valEl.textContent = 'Undefined';
+      bdEl.innerHTML = res.msg;
+      return null;
+    }
+    valEl.textContent = res.D.toFixed(2);
+    bdEl.innerHTML =
+      '<strong>Calculation Breakdown:</strong><br>' +
+      'Species found: ' + col.richness + '<br>' +
+      'Total organisms (N): ' + col.N + '<br>' +
+      'N(N&minus;1): ' + col.NN + '<br>' +
+      '&Sigma;n(n&minus;1): ' + col.sum + '<br>' +
+      'D = ' + col.NN + ' &divide; ' + col.sum + ' = <strong>' + res.D.toFixed(2) + '</strong>';
+    return res.D;
+  }
+
+  function calculateIndex() {
+    var t = updateLive();
+    if (t.p.bad + t.a.bad > 0) {
+      showError('Counts must be whole numbers of 0 or more. Fix the boxes outlined in red.');
+      return;
+    }
+    if (t.p.N === 0 && t.a.N === 0) {
+      showError('Enter the organism counts from your data table first.');
+      return;
+    }
+    document.getElementById('results').style.display = 'flex';
+    var Dp = renderResult(t.p, 'present');
+    var Da = renderResult(t.a, 'absent');
+    var cmp = document.getElementById('comparison');
+    if (Dp !== null && Da !== null) {
+      var rp = Dp.toFixed(2), ra = Da.toFixed(2);
+      if (rp === ra) {
+        cmp.textContent = 'Both areas have the same diversity index.';
+      } else {
+        var higher = Dp > Da ? 'with gopher tortoises present' : 'without gopher tortoises';
+        cmp.textContent = 'The area ' + higher + ' is more diverse (' +
+          Math.max(Dp, Da).toFixed(2) + ' vs. ' + Math.min(Dp, Da).toFixed(2) + ').';
+      }
+      cmp.style.display = 'block';
+    } else {
+      cmp.style.display = 'none';
+    }
+  }
+
+  function clearAll() {
+    var inputs = document.querySelectorAll('#speciesBody input');
+    for (var i = 0; i < inputs.length; i++) inputs[i].value = '';
+    updateLive();
+    document.getElementById('results').style.display = 'none';
+  }
+
+  function showError(msg) {
+    var el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+    clearTimeout(showError._timer);
+    showError._timer = setTimeout(function () { el.style.display = 'none'; }, 5000);
+  }
+  function clearError() { document.getElementById('errorMsg').style.display = 'none'; }
+
+  buildTable();
+</script>
+
+</body>
+</html>

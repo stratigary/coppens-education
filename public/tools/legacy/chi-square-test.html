@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chi-Square Calculator</title>
+<style>
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: transparent; 
+    margin: 0; 
+    padding: 10px; 
+    color: #333; 
+  }
+  .calculator-container { 
+    max-width: 600px; 
+    margin: 0 auto; 
+    background: #ffffff; 
+    padding: 25px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    border-top: 6px solid #5c6bc0; /* Indigo theme */
+  }
+  h2 { 
+    color: #2c3e50; 
+    margin-top: 0; 
+    text-align: center; 
+    font-size: 22px;
+  }
+  .formula-box { 
+    background: #e8eaf6; 
+    padding: 20px; 
+    border-radius: 6px; 
+    text-align: center; 
+    margin-bottom: 20px; 
+    color: #3f51b5; 
+  }
+  .formula-box span.equation {
+    font-size: 1.5em;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+  }
+  .definitions {
+    text-align: left;
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #c5cae9;
+  }
+  .definitions p {
+    margin: 0 0 10px 0;
+    font-weight: bold;
+    color: #3949ab;
+  }
+  .definitions ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+    font-size: 0.9em;
+    color: #444;
+  }
+  .definitions li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .definitions li:last-child {
+    margin-bottom: 0;
+  }
+  .category-list { margin-bottom: 15px; }
+  .category-row { 
+    display: flex; 
+    gap: 10px; 
+    margin-bottom: 10px; 
+    align-items: center; 
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+  }
+  .input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .input-group label {
+    font-size: 0.8em;
+    color: #666;
+    margin-bottom: 3px;
+    font-weight: bold;
+  }
+  input[type="number"] { 
+    padding: 8px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    font-size: 15px; 
+    width: 100%;
+    box-sizing: border-box;
+  }
+  button { 
+    border: none; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-size: 15px; 
+    transition: background 0.2s; 
+  }
+  .btn-remove { 
+    background: #e53935; 
+    color: white; 
+    padding: 10px 15px; 
+    font-weight: bold;
+    height: 38px;
+    margin-top: 17px; /* Align with inputs below labels */
+  }
+  .btn-remove:hover { background: #c62828; }
+  .btn-add { 
+    background: #5c6bc0; 
+    color: white; 
+    padding: 10px 15px; 
+    width: 100%; 
+    margin-bottom: 15px; 
+    font-weight: bold;
+  }
+  .btn-add:hover { background: #3f51b5; }
+  .btn-calc { 
+    background: #3949ab; 
+    color: white; 
+    padding: 12px 15px; 
+    width: 100%; 
+    font-size: 18px; 
+    font-weight: bold; 
+  }
+  .btn-calc:hover { background: #283593; }
+  .result-box { 
+    margin-top: 20px; 
+    padding: 15px; 
+    background: #f5f5f5; 
+    border-radius: 6px; 
+    text-align: center; 
+    display: none; 
+    border: 1px solid #e0e0e0;
+  }
+  .result-value { 
+    font-size: 28px; 
+    font-weight: bold; 
+    color: #2c3e50; 
+    margin-top: 5px; 
+    margin-bottom: 10px;
+  }
+  .df-value {
+    font-size: 18px;
+    color: #3949ab;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  .breakdown {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 10px;
+    text-align: left;
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px dashed #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .breakdown-item {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+  }
+  .breakdown-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="calculator-container">
+  <h2>Chi-Square (&chi;<sup>2</sup>) Goodness of Fit Test</h2>
+  
+  <div class="formula-box">
+    <span class="equation">&chi;<sup>2</sup> = &Sigma; [(O &minus; E)<sup>2</sup> &divide; E]</span>
+    
+    <div class="definitions">
+      <p>Where:</p>
+      <ul>
+        <li><strong>&chi;<sup>2</sup></strong> = Chi-Square statistic</li>
+        <li><strong>O</strong> = Observed frequency (your actual data)</li>
+        <li><strong>E</strong> = Expected frequency (your predicted data based on a null hypothesis, e.g., a Punnett square ratio)</li>
+        <li><strong>&Sigma;</strong> = Sum of all categories</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="category-list" id="categoryList">
+    <div class="category-row">
+      <div class="input-group">
+        <label>Observed (O)</label>
+        <input type="number" class="obs-input" min="0" step="any" placeholder="e.g., 55" required>
+      </div>
+      <div class="input-group">
+        <label>Expected (E)</label>
+        <input type="number" class="exp-input" min="0.0001" step="any" placeholder="e.g., 50" required>
+      </div>
+      <button class="btn-remove" onclick="removeRow(this)" title="Remove category">&times;</button>
+    </div>
+    <div class="category-row">
+      <div class="input-group">
+        <label>Observed (O)</label>
+        <input type="number" class="obs-input" min="0" step="any" placeholder="e.g., 45" required>
+      </div>
+      <div class="input-group">
+        <label>Expected (E)</label>
+        <input type="number" class="exp-input" min="0.0001" step="any" placeholder="e.g., 50" required>
+      </div>
+      <button class="btn-remove" onclick="removeRow(this)" title="Remove category">&times;</button>
+    </div>
+  </div>
+
+  <button class="btn-add" onclick="addCategory()">+ Add Another Category</button>
+  <button class="btn-calc" onclick="calculateChiSquare()">Calculate &chi;<sup>2</sup></button>
+
+  <div class="result-box" id="resultBox">
+    <div>Chi-Square (&chi;<sup>2</sup>) Value:</div>
+    <div class="result-value" id="finalResult">-</div>
+    <div class="df-value" id="dfResult">-</div>
+    <div class="breakdown" id="breakdownText"></div>
+  </div>
+</div>
+
+<script>
+  function addCategory() {
+    const container = document.getElementById('categoryList');
+    const row = document.createElement('div');
+    row.className = 'category-row';
+    
+    row.innerHTML = `
+      <div class="input-group">
+        <label>Observed (O)</label>
+        <input type="number" class="obs-input" min="0" step="any" required>
+      </div>
+      <div class="input-group">
+        <label>Expected (E)</label>
+        <input type="number" class="exp-input" min="0.0001" step="any" required>
+      </div>
+      <button class="btn-remove" onclick="removeRow(this)">&times;</button>
+    `;
+    
+    container.appendChild(row);
+  }
+
+  function removeRow(button) {
+    const container = document.getElementById('categoryList');
+    if (container.children.length > 1) {
+      button.parentElement.remove();
+    } else {
+      alert("You need at least one category to calculate.");
+    }
+  }
+
+  function calculateChiSquare() {
+    const obsInputs = document.querySelectorAll('.obs-input');
+    const expInputs = document.querySelectorAll('.exp-input');
+    
+    let chiSquareTotal = 0;
+    let validCategories = 0;
+    let breakdownHTML = '<strong>Category Breakdown [(O - E)&sup2; / E]:</strong><br><br>';
+    
+    let hasError = false;
+
+    for (let i = 0; i < obsInputs.length; i++) {
+      const O = parseFloat(obsInputs[i].value);
+      const E = parseFloat(expInputs[i].value);
+
+      if (isNaN(O) || isNaN(E)) {
+        alert("Please fill in all Observed and Expected fields with numbers.");
+        hasError = true;
+        break;
+      }
+
+      if (E <= 0) {
+        alert("Expected values (E) must be greater than 0.");
+        hasError = true;
+        break;
+      }
+
+      const difference = O - E;
+      const diffSquared = Math.pow(difference, 2);
+      const categoryValue = diffSquared / E;
+
+      chiSquareTotal += categoryValue;
+      validCategories++;
+
+      breakdownHTML += `
+        <div class="breakdown-item">
+          <strong>Category ${i + 1}:</strong> O = ${O}, E = ${E}<br>
+          (${O} &minus; ${E})&sup2; &divide; ${E} = <strong>${categoryValue.toFixed(3)}</strong>
+        </div>
+      `;
+    }
+
+    if (hasError) return;
+
+    if (validCategories === 0) {
+      alert("No valid data to calculate.");
+      return;
+    }
+
+    const degreesOfFreedom = validCategories - 1;
+
+    // Display Results
+    const resultBox = document.getElementById('resultBox');
+    const finalResult = document.getElementById('finalResult');
+    const dfResult = document.getElementById('dfResult');
+    const breakdownText = document.getElementById('breakdownText');
+
+    resultBox.style.display = 'block';
+    finalResult.innerHTML = chiSquareTotal.toFixed(3);
+    dfResult.innerHTML = `Degrees of Freedom (df) = ${degreesOfFreedom}`;
+    breakdownText.innerHTML = breakdownHTML;
+  }
+</script>
+
+</body>
+</html>

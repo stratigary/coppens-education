@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lincoln Index Calculator</title>
+<style>
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: transparent; 
+    margin: 0; 
+    padding: 10px; 
+    color: #333; 
+  }
+  .calculator-container { 
+    max-width: 550px; 
+    margin: 0 auto; 
+    background: #ffffff; 
+    padding: 25px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    border-top: 6px solid #2196F3; 
+  }
+  h2 { 
+    color: #2c3e50; 
+    margin-top: 0; 
+    text-align: center; 
+    font-size: 22px;
+  }
+  .formula-box { 
+    background: #e3f2fd; 
+    padding: 20px; 
+    border-radius: 6px; 
+    text-align: center; 
+    margin-bottom: 20px; 
+    color: #1565c0; 
+  }
+  .formula-box span.equation {
+    font-size: 1.5em;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+  }
+  .definitions {
+    text-align: left;
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #bbdefb;
+  }
+  .definitions p {
+    margin: 0 0 10px 0;
+    font-weight: bold;
+    color: #1976d2;
+  }
+  .definitions ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+    font-size: 0.9em;
+    color: #444;
+  }
+  .definitions li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .definitions li:last-child {
+    margin-bottom: 0;
+  }
+  .input-group { 
+    margin-bottom: 15px; 
+  }
+  .input-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #455a64;
+    font-size: 0.95em;
+  }
+  input[type="number"] { 
+    width: 100%;
+    padding: 10px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    font-size: 16px; 
+    box-sizing: border-box;
+  }
+  .btn-calc { 
+    background: #2196F3; 
+    color: white; 
+    padding: 12px 15px; 
+    width: 100%; 
+    font-size: 18px; 
+    font-weight: bold; 
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 10px;
+  }
+  .btn-calc:hover { background: #1976D2; }
+  .result-box { 
+    margin-top: 20px; 
+    padding: 15px; 
+    background: #f5f5f5; 
+    border-radius: 6px; 
+    text-align: center; 
+    display: none; 
+    border: 1px solid #e0e0e0;
+  }
+  .result-value { 
+    font-size: 28px; 
+    font-weight: bold; 
+    color: #2c3e50; 
+    margin-top: 5px; 
+  }
+  .breakdown {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 10px;
+    text-align: left;
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px dashed #ccc;
+  }
+</style>
+</head>
+<body>
+
+<div class="calculator-container">
+  <h2>Lincoln Index (Mark-Recapture)</h2>
+  
+  <div class="formula-box">
+    <span class="equation">N = (n<sub>1</sub> &times; n<sub>2</sub>) &divide; m<sub>2</sub></span>
+    
+    <div class="definitions">
+      <p>Where:</p>
+      <ul>
+        <li><strong>N</strong> = Estimated total population size</li>
+        <li><strong>n<sub>1</sub></strong> = Number of animals captured, marked, and released in the 1st sample</li>
+        <li><strong>n<sub>2</sub></strong> = Total number of animals captured in the 2nd sample</li>
+        <li><strong>m<sub>2</sub></strong> = Number of marked animals found in the 2nd sample (recaptures)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="input-group">
+    <label for="n1">1st Sample (n<sub>1</sub>) - Number initially marked:</label>
+    <input type="number" id="n1" min="1" placeholder="e.g., 40" required>
+  </div>
+  
+  <div class="input-group">
+    <label for="n2">2nd Sample (n<sub>2</sub>) - Total caught in second round:</label>
+    <input type="number" id="n2" min="1" placeholder="e.g., 50" required>
+  </div>
+
+  <div class="input-group">
+    <label for="m2">Recaptures (m<sub>2</sub>) - Number of marked animals in 2nd sample:</label>
+    <input type="number" id="m2" min="0" placeholder="e.g., 10" required>
+  </div>
+
+  <button class="btn-calc" onclick="calculateIndex()">Estimate Population (N)</button>
+
+  <div class="result-box" id="resultBox">
+    <div>Estimated Population Size (N):</div>
+    <div class="result-value" id="finalResult">-</div>
+    <div class="breakdown" id="breakdownText"></div>
+  </div>
+</div>
+
+<script>
+  function calculateIndex() {
+    const n1 = parseInt(document.getElementById('n1').value);
+    const n2 = parseInt(document.getElementById('n2').value);
+    const m2 = parseInt(document.getElementById('m2').value);
+
+    // Basic Validation
+    if (isNaN(n1) || isNaN(n2) || isNaN(m2) || n1 <= 0 || n2 <= 0 || m2 < 0) {
+      alert("Please enter valid numbers. n1 and n2 must be greater than 0.");
+      return;
+    }
+
+    // Logic Validation
+    if (m2 > n2) {
+      alert("Error: You cannot recapture more marked animals (m2) than the total number of animals you caught in the second sample (n2)!");
+      return;
+    }
+    if (m2 > n1) {
+      alert("Error: You cannot recapture more marked animals (m2) than you originally marked in the first place (n1)!");
+      return;
+    }
+
+    const resultBox = document.getElementById('resultBox');
+    const finalResult = document.getElementById('finalResult');
+    const breakdownText = document.getElementById('breakdownText');
+
+    resultBox.style.display = 'block';
+
+    if (m2 === 0) {
+      finalResult.innerHTML = "Undefined";
+      breakdownText.innerHTML = `
+        <strong>Calculation Breakdown:</strong><br>
+        If you catch 0 marked individuals, the denominator is 0, making the population estimate infinite.<br><br>
+        <em>Biological Note: This usually means the actual population is massive, or your sampling methods are flawed (e.g., the marks fell off, or you didn't allow enough time for mixing). You need a larger sample size!</em>
+      `;
+    } else {
+      const N = (n1 * n2) / m2;
+      const roundedN = Math.round(N);
+      
+      finalResult.innerHTML = roundedN;
+      breakdownText.innerHTML = `
+        <strong>Calculation Breakdown:</strong><br>
+        Numerator (n<sub>1</sub> &times; n<sub>2</sub>): ${n1} &times; ${n2} = ${n1 * n2}<br>
+        Denominator (m<sub>2</sub>): ${m2}<br>
+        Exact Calculation: ${n1 * n2} &divide; ${m2} = ${N.toFixed(2)}<br><br>
+        <em>Note: Final populations are rounded to the nearest whole organism.</em>
+      `;
+    }
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+import { courses, savedLessons, buildToday, activeAnnouncements, courseById } from '../lib/data.js';
+import { todayCard, fmt, url } from '../lib/render.js';
+import toolsData from '../data/tools.json';
+const today = buildToday();
+const cards = courses.map(c => todayCard(c, savedLessons(c), today, c.sections?.[0] || 'default')).join('');
+const notes = activeAnnouncements('home', today);
+const featured = toolsData.tools.filter(t => t.show !== false).slice(0, 4);
+---
+<Base title="Today" active="home">
+  <div class="band">
+    <canvas class="topo" aria-hidden="true"></canvas>
+    <div class="wrap" data-live data-page="home">
+      <p class="eyebrow">Today in class</p>
+      <h1 id="today-date">{fmt.long(today)}</h1>
+      <p class="lede">What each class is doing today, what’s due, and when we meet next. This comes straight from the unit plans. Assignments are posted and turned in on Google Classroom.</p>
+      {notes.map(n => {
+        const c = n.course && n.course !== 'all' ? courseById(n.course) : null;
+        return <div class={`notice ${c ? 'c-' + c.color : ''}`} role="note">{c && <span class="tag sm">{c.short}</span>}<p>{n.text}</p></div>;
+      })}
+      <div class="today" data-cards set:html={cards} />
+      <p class="data-status" data-status aria-live="polite">Showing the saved copy of the calendar.</p>
+    </div>
+  </div>
+  <section class="block" aria-labelledby="kit-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><p class="eyebrow">Field kit</p><h2 id="kit-h">Tools &amp; simulations</h2></div>
+        <p class="sec-note">Calculators and models we use in class. <a href={url('/tools/')}>See all tools and links</a>.</p>
+      </div>
+      <div class="tool-grid">
+        {featured.map(t => (
+          <article class="tool-card">
+            <h3><a href={url(`/tools/${t.slug}/`)}>{t.title}</a></h3>
+            <p>{t.description}</p>
+            <div class="tags">{t.courses.map(id => courseById(id)).filter(c => c && c.enabled).map(c => <span class={`tag sm c-${c.color}`}>{c.short}</span>)}</div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+<script>import '../scripts/live.js';</script>

@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Auxin and Tropisms: Virtual Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page: #EEF2F0;
+  --surface: #FFFFFF;
+  --ink: #1C2826;
+  --muted: #56655F;
+  --line: #CCD6D2;
+  --accent: #2A5C8C;
+  --accent-soft: #E3ECF5;
+  --plant: #4E8A4B;
+  --focus: #2A5C8C;
+  --font: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--page); color: var(--ink);
+  font-family: var(--font); font-size: 16px; line-height: 1.45;
+}
+header.top {
+  padding: 18px clamp(14px, 3vw, 32px) 0;
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 6px 28px;
+  border-bottom: 1px solid var(--line); background: var(--surface);
+}
+.title-block { padding-bottom: 14px; }
+h1 { font-size: 1.55rem; margin: 0; letter-spacing: -0.01em; }
+.subtitle { margin: 2px 0 0; color: var(--muted); font-size: 0.95rem; }
+nav.tabs { display: flex; gap: 2px; flex-wrap: wrap; }
+nav.tabs button {
+  font: inherit; font-size: 0.98rem; background: none; border: none; color: var(--muted);
+  padding: 10px 14px 12px; border-bottom: 3px solid transparent; cursor: pointer;
+}
+nav.tabs button[aria-selected="true"] { color: var(--ink); font-weight: 700; border-bottom-color: var(--accent); }
+nav.tabs button:hover { color: var(--ink); }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, label:focus-within {
+  outline: 3px solid var(--focus); outline-offset: 2px;
+}
+
+main.layout {
+  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr);
+  gap: 18px; padding: 18px clamp(14px, 3vw, 32px); max-width: 1320px;
+}
+@media (max-width: 900px) { main.layout { grid-template-columns: 1fr; } }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.stage { padding: 12px; align-self: start; }
+@media (min-width: 901px) { .stage { position: sticky; top: 12px; } }
+.canvas-wrap { position: relative; }
+canvas { display: block; width: 100%; height: auto; border-radius: 4px; }
+#sim { cursor: crosshair; touch-action: manipulation; }
+.hint { font-size: 0.88rem; color: var(--muted); margin: 8px 2px 0; }
+.hint:empty { display: none; }
+
+.transport {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  padding: 10px 2px 2px;
+}
+.btn {
+  font: inherit; font-size: 0.95rem; border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink); padding: 7px 14px; border-radius: 6px; cursor: pointer; min-height: 38px;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.btn.primary:hover { background: #224C75; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.clock { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 9ch; }
+select { font: inherit; font-size: 0.95rem; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); min-height: 38px; }
+.check { display: inline-flex; align-items: center; gap: 6px; font-size: 0.95rem; cursor: pointer; border-radius: 4px; }
+.check input { width: 18px; height: 18px; accent-color: var(--accent); }
+.spacer { flex: 1; }
+
+.legend { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--muted); padding: 8px 2px 0; }
+.legend .bar { height: 12px; flex: 0 1 220px; border-radius: 2px; border: 1px solid var(--line); }
+
+.readouts {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;
+  padding: 12px 2px 2px;
+}
+.readout { border-left: 3px solid var(--line); padding: 2px 0 2px 10px; }
+.readout .v { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.readout .k { font-size: 0.82rem; color: var(--muted); }
+
+aside.panel { display: flex; flex-direction: column; gap: 18px; }
+.panel section { padding: 14px 16px; }
+.panel h2 { font-size: 1.08rem; margin: 0 0 8px; }
+.panel h3 { font-size: 0.98rem; margin: 12px 0 6px; }
+.panel p { margin: 0 0 8px; font-size: 0.93rem; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+
+.field { margin: 10px 0; }
+.field label.lab { display: flex; justify-content: space-between; font-size: 0.92rem; margin-bottom: 4px; }
+.field label.lab span:last-child { font-variant-numeric: tabular-nums; color: var(--muted); }
+input[type=range] { width: 100%; accent-color: var(--accent); height: 28px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font: inherit; font-size: 0.86rem; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink); cursor: pointer; min-height: 32px;
+}
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+
+.cells-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.cells-table th, .cells-table td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.cells-table th { font-weight: 700; color: var(--muted); font-size: 0.8rem; }
+
+/* experiment bench */
+.exp-list { display: flex; flex-direction: column; gap: 4px; max-height: 300px; overflow-y: auto; padding-right: 4px; }
+.exp-item {
+  text-align: left; font: inherit; font-size: 0.9rem; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 7px 10px; cursor: pointer; color: var(--ink);
+}
+.exp-item .who { display: block; font-size: 0.78rem; color: var(--muted); }
+.exp-item[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.exp-item .done { float: right; font-size: 0.75rem; color: var(--plant); font-weight: 700; }
+fieldset { border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px 10px; margin: 10px 0; }
+legend { font-size: 0.9rem; font-weight: 700; padding: 0 4px; }
+.radio { display: flex; gap: 8px; align-items: flex-start; font-size: 0.92rem; padding: 3px 0; cursor: pointer; }
+.radio input { margin-top: 3px; width: 17px; height: 17px; accent-color: var(--accent); }
+#btn-run { margin-bottom: 12px; }
+.result { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 10px 12px; border-radius: 0 6px 6px 0; font-size: 0.92rem; }
+.result p:last-child { margin-bottom: 0; }
+
+/* data */
+section.data, section.notes { margin: 0 clamp(14px, 3vw, 32px) 18px; padding: 14px 16px; max-width: calc(1320px - 2 * clamp(14px, 3vw, 32px)); }
+.data-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.data-head h2 { font-size: 1.08rem; margin: 0 auto 0 0; }
+.table-wrap { overflow-x: auto; margin-top: 10px; }
+table.data-table { border-collapse: collapse; width: 100%; font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+table.data-table th, table.data-table td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+table.data-table th { color: var(--muted); font-weight: 700; font-size: 0.82rem; }
+table.data-table td.wrap { white-space: normal; min-width: 220px; }
+.empty { color: var(--muted); font-size: 0.9rem; padding: 10px 0 2px; }
+.notes details { border-top: 1px solid var(--line); padding: 10px 0; }
+.notes details:first-of-type { border-top: none; }
+.notes summary { cursor: pointer; font-weight: 700; }
+.notes p, .notes li { font-size: 0.93rem; max-width: 75ch; }
+.notes ol, .notes ul { padding-left: 1.3em; }
+.toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 0.9rem; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.show { opacity: 1; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+@media print {
+  header.top nav, .transport, .panel, section.notes, .data-head .btn { display: none !important; }
+  body { background: #fff; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="title-block">
+    <h1>Auxin and tropisms</h1>
+    <p class="subtitle">A virtual lab: watch auxin move, then watch the plant respond</p>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Lab sections">
+    <button role="tab" id="tab-photo" aria-selected="true" aria-controls="ctl-photo" data-mode="photo">Phototropism</button>
+    <button role="tab" id="tab-grav" aria-selected="false" aria-controls="ctl-grav" data-mode="grav">Gravitropism</button>
+    <button role="tab" id="tab-bench" aria-selected="false" aria-controls="ctl-bench" data-mode="bench">Classic experiments</button>
+  </nav>
+</header>
+
+<main class="layout">
+  <section class="card stage" aria-label="Simulation">
+    <div class="canvas-wrap">
+      <canvas id="sim" aria-label="Plant simulation. Auxin concentration is shown as color on the left and right halves of the stem."></canvas>
+    </div>
+    <p class="hint" id="hint"></p>
+    <div class="transport" id="transport">
+      <button class="btn primary" id="btn-play">Play</button>
+      <button class="btn" id="btn-reset">Reset</button>
+      <span class="clock" id="clock" aria-live="off">0 h 00 min</span>
+      <label class="small muted" for="speed">Speed</label>
+      <select id="speed">
+        <option value="15">15 min per second</option>
+        <option value="30" selected>30 min per second</option>
+        <option value="60">1 h per second</option>
+        <option value="120">2 h per second</option>
+      </select>
+      <span class="spacer"></span>
+      <label class="check"><input type="checkbox" id="show-auxin" checked> Show auxin</label>
+    </div>
+    <div class="legend" id="legend">
+      <span>Low auxin</span><canvas class="bar" id="legend-bar" width="220" height="12" aria-hidden="true"></canvas><span>High auxin</span>
+    </div>
+    <div class="readouts" id="readouts" aria-live="polite"></div>
+  </section>
+
+  <aside class="panel">
+    <!-- PHOTOTROPISM CONTROLS -->
+    <section class="card" id="ctl-photo" role="tabpanel" aria-labelledby="tab-photo">
+      <h2>Light</h2>
+      <div class="field">
+        <label class="lab" for="light-angle"><span>Direction</span><span id="light-angle-val">From the right</span></label>
+        <input type="range" id="light-angle" min="-90" max="90" step="5" value="90">
+      </div>
+      <div class="chips" role="group" aria-label="Light presets">
+        <button class="chip" data-angle="-90">Left</button>
+        <button class="chip" data-angle="-45">Upper left</button>
+        <button class="chip" data-angle="0">Overhead</button>
+        <button class="chip" data-angle="45">Upper right</button>
+        <button class="chip" data-angle="90">Right</button>
+      </div>
+      <div class="field">
+        <label class="lab" for="light-int"><span>Brightness</span><span id="light-int-val">100%</span></label>
+        <input type="range" id="light-int" min="0" max="100" step="10" value="100">
+      </div>
+      <p class="small muted">Tip: press Play, then move the light partway through. Watch which changes first: the auxin colors or the shape of the stem.</p>
+    </section>
+
+    <!-- GRAVITROPISM CONTROLS -->
+    <section class="card" id="ctl-grav" role="tabpanel" aria-labelledby="tab-grav" hidden>
+      <h2>Seedling orientation</h2>
+      <p class="small muted">The seedling is in the dark, so gravity is the only directional stimulus.</p>
+      <div class="chips" role="group" aria-label="Seedling orientation">
+        <button class="chip" data-rot="0">Upright</button>
+        <button class="chip" data-rot="90">On its side</button>
+        <button class="chip" data-rot="180">Upside down</button>
+      </div>
+      <div class="field">
+        <label class="check"><input type="checkbox" id="clinostat"> Clinostat (slowly rotate the seedling)</label>
+      </div>
+      <p class="small muted">Click the shoot or the root in the picture to choose which cells to inspect.</p>
+    </section>
+
+    <!-- BENCH CONTROLS -->
+    <section class="card" id="ctl-bench" role="tabpanel" aria-labelledby="tab-bench" hidden>
+      <h2>Historic experiments</h2>
+      <p class="small muted">Choose a setup, make a prediction, then run it. Light comes from the right unless noted.</p>
+      <div class="exp-list" id="exp-list" role="group" aria-label="Experiments"></div>
+      <h3 id="exp-title"></h3>
+      <p id="exp-setup"></p>
+      <div class="field" id="went-field" hidden>
+        <label class="lab" for="went-conc"><span>Auxin in agar block (relative)</span><span id="went-conc-val">1.00</span></label>
+        <input type="range" id="went-conc" min="0" max="2" step="0.25" value="1">
+      </div>
+      <fieldset id="predict">
+        <legend>Your prediction</legend>
+        <div id="predict-options"></div>
+      </fieldset>
+      <button class="btn primary" id="btn-run" disabled>Run experiment</button>
+      <div class="result" id="exp-result" hidden></div>
+    </section>
+
+    <section class="card">
+      <h2>Inside the cells</h2>
+      <p class="small muted" id="cells-where">Click any part of the stem to zoom in.</p>
+      <canvas id="cells" aria-label="Cell-level view of the selected region"></canvas>
+      <table class="cells-table" id="cells-table"></table>
+    </section>
+
+    <section class="card">
+      <h2>How growth depends on auxin</h2>
+      <canvas id="dose" aria-label="Dose response curves for shoot and root"></canvas>
+      <p class="small muted" style="margin-top:6px">Dots show the two sides of the region you are inspecting. Roots respond to concentrations about 10,000 times lower than shoots.</p>
+    </section>
+  </aside>
+</main>
+
+<section class="card data">
+  <div class="data-head">
+    <h2>Data table</h2>
+    <button class="btn" id="btn-record">Record a data point</button>
+    <button class="btn" id="btn-copy">Copy for Sheets</button>
+    <button class="btn" id="btn-clear">Clear</button>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table" id="data-table">
+      <thead><tr><th>#</th><th>Section</th><th>Organ</th><th>Condition</th><th>Time (min)</th><th>Tip angle (°)</th><th>Auxin on shaded or lower side (%)</th><th>Notes</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="empty" id="data-empty">No data yet. Record points while the simulation runs; experiment results are added automatically.</p>
+</section>
+
+<section class="card notes">
+  <details>
+    <summary>The science behind the model</summary>
+    <ol>
+      <li><strong>Auxin (IAA) is made in the shoot tip</strong> and moves toward the base by polar transport. In the slightly acidic cell wall, auxin is uncharged (IAAH) and diffuses into cells. In the neutral cytoplasm it loses a proton and becomes IAA⁻, which is trapped until PIN efflux carriers pump it out.</li>
+      <li><strong>The position of PIN carriers sets the direction of flow.</strong> PINs on the basal (lower) membrane send auxin downward. When the tip detects light from one side (phototropins) or gravity (amyloplasts settling in statocytes), PIN proteins relocate to the membranes facing the shaded or lower side, so auxin builds up there.</li>
+      <li><strong>In shoots, auxin promotes cell elongation (acid growth).</strong> Auxin activates proton pumps that move H⁺ into the cell wall. The lower pH activates expansins, which loosen the bonds between cellulose microfibrils, and turgor pressure stretches the cell.</li>
+      <li><strong>Differential growth causes the bend.</strong> The side with more auxin elongates faster, so a shoot curves toward light and away from the pull of gravity.</li>
+      <li><strong>Roots are far more sensitive.</strong> The concentration that stimulates shoot cells inhibits root cells. Auxin still collects on the lower side of a horizontal root, but there it slows elongation, so the upper side grows faster and the root curves down.</li>
+    </ol>
+  </details>
+  <details>
+    <summary>What the model simplifies</summary>
+    <ul>
+      <li>Auxin is in relative units. A value of 1 is the normal level in a vertical stem. The molar values on the growth graph are approximate.</li>
+      <li>The stem is drawn as two halves (left and right). A real stem is three-dimensional.</li>
+      <li>In the phototropism section, gravity is switched off so that light is the only stimulus. In a real plant both act at once.</li>
+      <li>Growth rates, pH values and timing are tuned to be realistic in direction and rough scale, not to match one species exactly.</li>
+      <li>Auxin trapped above an impermeable barrier is slowly inactivated in the model, as happens through conjugation and oxidation in real tissue.</li>
+    </ul>
+  </details>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+// ---------- Auxin / tropism engine ----------
+const PARAMS = {
+  P: 0.51,        // auxin production at tip per side per minute
+  T: 0.5,         // longitudinal (polar) transport fraction per minute
+  decay: 0.01,    // turnover per minute
+  latTip: 0.1,    // lateral relocation rate in tip
+  latZone: 0.28,  // lateral relocation rate in upper elongation zone
+  diffuse: 0.002,  // passive side-to-side equalisation
+  sigTau: 0.06,   // perception smoothing (signal transduction lag)
+  kBend: 0.02,   // bending per unit growth difference
+  kElong: 0.0035, // elongation per unit growth
+  lenMaxFactor: 1.45
+};
+
+function growthCurve(type, a) {
+  // shoots keep some auxin-independent (basal) growth; roots are far more sensitive
+  const a0 = type === 'shoot' ? 0.3 : 0.003;
+  const x = Math.log10(Math.max(a, 0) + a0);
+  const mu = type === 'shoot' ? 2 : -2;
+  const s = 1.5;
+  return Math.exp(-((x - mu) * (x - mu)) / (2 * s * s));
+}
+
+function makeOrgan(o) {
+  const N = o.N;
+  const org = {
+    type: o.type, N, baseAngle: o.baseAngle,
+    segLen0: o.segLen, width: o.width,
+    len: Array(N).fill(o.segLen), bend: Array(N).fill(0),
+    aL: Array(N).fill(o.initA ?? 1), aR: Array(N).fill(o.initA ?? 1),
+    tip: o.tip ?? true, cap: o.cap ?? 'none', collar: o.collar ?? false,
+    barrier: o.barrier ?? null, // {type:'gelatin'|'mica'|'mica-left'|'mica-right', at: index of lower segment receiving}
+    agar: o.agar ?? null,       // {side:'L'|'R', conc}
+    sigPhoto: 0, sigGrav: 0,
+    perceiveGrav: o.perceiveGrav ?? true,
+    photoZone: o.photoZone ?? 2, lateralZone: o.lateralZone ?? 6,
+    weights: [], latActive: Array(N).fill(0)
+  };
+  for (let i = 0; i < N; i++) {
+    // elongation zone near tip, mature tissue at base
+    const fromTip = N - 1 - i + (o.tipOffset ?? 0);
+    let w;
+    if (fromTip <= 1) w = 0.08;            // tip: perceives, barely elongates
+    else if (fromTip <= 7) w = 1;          // elongation zone
+    else w = Math.max(0, 1 - (fromTip - 7) / 4); // maturing tissue
+    org.weights.push(w);
+  }
+  return org;
+}
+
+function segDirs(org, rot = 0) {
+  const d = []; let ang = org.baseAngle + rot;
+  for (let i = 0; i < org.N; i++) { ang += org.bend[i]; d.push(ang); }
+  return d;
+}
+
+// env: {light:{dx,dy,I}|null, gravity:bool, gAngleOffset: radians (clinostat/pot rotation applied to gravity in organ frame)}
+function stepOrgan(org, env, rot = 0) {
+  const p = PARAMS, N = org.N;
+  const dirs = segDirs(org, rot);
+  const th = dirs[N - 1];
+  const nLx = -Math.sin(th), nLy = Math.cos(th);
+
+  // --- perception ---
+  let tPhoto = 0;
+  if (env.light && org.tip && org.cap !== 'opaque' && env.light.I > 0) {
+    tPhoto = (env.light.dx * nLx + env.light.dy * nLy) * env.light.I; // + => left side lit
+  }
+  let tGrav = 0;
+  if (env.gravity && org.perceiveGrav && org.tip) {
+    const gx = env.gx ?? 0, gy = env.gy ?? -1;
+    tGrav = gx * nLx + gy * nLy; // + => left side is lower
+  }
+  org.sigPhoto += (tPhoto - org.sigPhoto) * p.sigTau;
+  org.sigGrav += (tGrav - org.sigGrav) * p.sigTau;
+  // lateral bias: + => move auxin toward LEFT
+  const lat = Math.max(-1, Math.min(1, -org.sigPhoto + org.sigGrav));
+
+  const aL = org.aL, aR = org.aR;
+  // --- production ---
+  if (org.tip) { aL[N - 1] += p.P; aR[N - 1] += p.P; }
+  if (org.agar) {
+    const amt = 0.2 * p.P * org.agar.conc;
+    org.agar.conc *= 0.995; // block slowly depletes
+    if (org.agar.side === 'L') aL[N - 1] += amt; else aR[N - 1] += amt;
+  }
+  // --- lateral redistribution: PIN carriers relocate toward the shaded / lower side ---
+  // pushes auxin toward a target split (max ~75:25), only in the direction of the signal
+  const fT = 0.5 + 0.25 * lat; // target fraction on LEFT side
+  for (let i = 0; i < N; i++) {
+    const fromTip = N - 1 - i;
+    let k = 0;
+    if (fromTip < org.photoZone) k = p.latTip;
+    else if (fromTip < org.lateralZone) k = p.latZone;
+    org.latActive[i] = k > 0 ? lat : 0;
+    if (!k || Math.abs(lat) < 1e-4) continue;
+    let m;
+    if (fromTip < org.photoZone) {
+      // tip: active, one-directional pumping toward the shaded/lower side
+      m = k * lat * (lat > 0 ? aR[i] : aL[i]);
+    } else {
+      // below tip: relocation toward a target split
+      m = k * (fT * (aL[i] + aR[i]) - aL[i]);
+      if (lat > 0 && m < 0) m = 0;
+      if (lat < 0 && m > 0) m = 0;
+    }
+    aL[i] += m; aR[i] -= m;
+  }
+  // passive equalisation
+  for (let i = 0; i < N; i++) {
+    const m = p.diffuse * (aL[i] - aR[i]) / 2; aL[i] -= m; aR[i] += m;
+  }
+  // --- polar transport toward base (index decreasing) ---
+  const nL = aL.map(v => v * (1 - p.decay)), nR = aR.map(v => v * (1 - p.decay));
+  for (let i = N - 1; i >= 0; i--) {
+    let blockL = false, blockR = false;
+    if (org.barrier && org.barrier.at === i - 1) {
+      const t = org.barrier.type;
+      if (t === 'mica') { blockL = blockR = true; }
+      if (t === 'mica-left') blockL = true;
+      if (t === 'mica-right') blockR = true;
+    }
+    const fl = blockL ? 0 : p.T * aL[i] * (1 - p.decay);
+    const fr = blockR ? 0 : p.T * aR[i] * (1 - p.decay);
+    nL[i] -= fl; nR[i] -= fr;
+    // auxin trapped above an impermeable barrier is gradually inactivated (conjugated/oxidised)
+    if (blockL) nL[i] *= 0.92;
+    if (blockR) nR[i] *= 0.92;
+    if (i > 0) { nL[i - 1] += fl; nR[i - 1] += fr; }
+  }
+  for (let i = 0; i < N; i++) { aL[i] = Math.max(0, nL[i]); aR[i] = Math.max(0, nR[i]); }
+
+  // --- growth ---
+  for (let i = 0; i < N; i++) {
+    const gL = growthCurve(org.type, aL[i]), gR = growthCurve(org.type, aR[i]);
+    const w = org.weights[i];
+    const room = Math.max(0, 1 - org.len[i] / (org.segLen0 * p.lenMaxFactor));
+    const capacity = w * (0.25 + 0.75 * room); // mature cells respond less
+    org.bend[i] += p.kBend * capacity * (gR - gL);
+    org.len[i] += p.kElong * org.segLen0 * capacity * (gL + gR) / 2;
+  }
+}
+
+// equilibrate auxin without growth
+function settle(org, env, steps = 400, rot = 0) {
+  const b = org.bend.slice(), l = org.len.slice();
+  for (let s = 0; s < steps; s++) stepOrgan(org, env, rot);
+  org.bend = b; org.len = l;
+}
+
+
+
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 600, H = 560;            // logical size of main canvas
+const CW = 360, CH = 300;          // cells canvas
+const DW = 360, DH = 200;          // dose canvas
+const TAU = Math.PI * 2;
+
+// ---------- colour ----------
+const STOPS = [[0,[255,247,214]],[0.2,[251,222,122]],[0.55,[245,172,62]],[1.0,[226,112,45]],[1.5,[182,48,50]],[2.2,[110,20,60]]];
+function heatRGB(a) {
+  if (a <= STOPS[0][0]) return STOPS[0][1];
+  for (let k = 1; k < STOPS.length; k++) {
+    if (a <= STOPS[k][0]) {
+      const [a0, c0] = STOPS[k-1], [a1, c1] = STOPS[k], f = (a - a0) / (a1 - a0);
+      return c0.map((v, j) => Math.round(v + (c1[j] - v) * f));
+    }
+  }
+  return STOPS[STOPS.length-1][1];
+}
+const heat = a => { const c = heatRGB(a); return `rgb(${c[0]},${c[1]},${c[2]})`; };
+const SHOOT_PLAIN = '#6FA765', ROOT_PLAIN = '#E8DCC0';
+
+// ---------- canvas helpers ----------
+function fitCanvas(cv, lw, lh) {
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = cv.getBoundingClientRect().width || lw;
+  const cssH = cssW * lh / lw;
+  cv.style.height = cssH + 'px';
+  cv.width = Math.max(1, Math.round(cssW * dpr));
+  cv.height = Math.max(1, Math.round(cssH * dpr));
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(cv.width / lw, 0, 0, cv.height / lh, 0, 0);
+  return ctx;
+}
+let simCtx, cellCtx, doseCtx;
+function fitAll() {
+  simCtx = fitCanvas($('sim'), W, H);
+  cellCtx = fitCanvas($('cells'), CW, CH);
+  doseCtx = fitCanvas($('dose'), DW, DH);
+  const lb = $('legend-bar'), lctx = lb.getContext('2d');
+  for (let x = 0; x < lb.width; x++) { lctx.fillStyle = heat(2.4 * x / lb.width); lctx.fillRect(x, 0, 1, lb.height); }
+}
+
+// ---------- state ----------
+const S = {
+  mode: 'photo', running: false, speed: 30, showAuxin: true, acc: 0, started: false,
+  photo: { t: 0, organ: null, angle: 90, I: 1, sel: null },
+  grav: { t: 0, shoot: null, root: null, rot: 0, clino: false, clinoRot: 0, sel: null },
+  bench: { t: 0, organ: null, exp: 0, predicted: null, phase: 'setup', done: {}, sel: null, conc: 1, refGain: null, L0: 0 },
+  data: []
+};
+const ORIGIN = { photo: [300, 468], grav: [300, 262], bench: [300, 478] };
+const BENCH_MIN = 90, BENCH_SPEED = 20;
+
+function newPhotoShoot() {
+  const o = makeOrgan({ type: 'shoot', N: 14, baseAngle: Math.PI/2, segLen: 20, width: 24 });
+  settle(o, { light: null, gravity: false });
+  return o;
+}
+function newGrav() {
+  const shoot = makeOrgan({ type: 'shoot', N: 12, baseAngle: Math.PI/2, segLen: 15, width: 18 });
+  const root = makeOrgan({ type: 'root', N: 12, baseAngle: -Math.PI/2, segLen: 15, width: 13 });
+  settle(shoot, { light: null, gravity: true });
+  settle(root, { light: null, gravity: true });
+  return { shoot, root };
+}
+function photoEnv() {
+  const p = S.photo;
+  if (p.I <= 0) return { light: null, gravity: false };
+  const r = p.angle * Math.PI / 180;
+  return { light: { dx: Math.sin(r), dy: Math.cos(r), I: p.I }, gravity: false };
+}
+const GRAV_ENV = { light: null, gravity: true, gx: 0, gy: -1 };
+const BENCH_LIGHT = { light: { dx: 1, dy: 0, I: 1 }, gravity: false };
+const DARK = { light: null, gravity: false };
+
+// ---------- experiments ----------
+const STD_PRED = [
+  ['toward', 'Bends toward the light'],
+  ['away', 'Bends away from the light'],
+  ['straight', 'Grows straight up, no bending'],
+  ['none', 'Little or no growth, no bending']
+];
+const WENT_PRED = [
+  ['away', 'Bends away from the side with the block'],
+  ['toward', 'Bends toward the side with the block'],
+  ['straight', 'Grows straight up, no bending'],
+  ['none', 'Little or no growth, no bending']
+];
+function intact() {
+  const o = makeOrgan({ type: 'shoot', N: 14, baseAngle: Math.PI/2, segLen: 19, width: 30 });
+  settle(o, DARK);
+  return o;
+}
+function decapitated(initA) {
+  const full = intact();
+  const o = makeOrgan({ type: 'shoot', N: 12, baseAngle: Math.PI/2, segLen: 19, width: 30, tip: false, tipOffset: 2 });
+  for (let i = 0; i < 12; i++) {
+    o.aL[i] = initA ?? full.aL[i]; o.aR[i] = initA ?? full.aR[i];
+  }
+  return o;
+}
+const EXPS = [
+  { id: 'control', who: 'Darwin and Darwin, 1880', title: 'Intact coleoptile (control)',
+    setup: 'A young oat coleoptile, untouched, with light from the right.',
+    build: () => intact(),
+    explain: 'The tip detects the light and auxin is moved to the shaded side. Cells on the shaded side elongate faster, so the coleoptile bends toward the light. Every other setup is compared with this one.' },
+  { id: 'decap', who: 'Darwin and Darwin, 1880', title: 'Tip removed',
+    setup: 'The top few millimetres of the coleoptile are cut off before it is lit from the right.',
+    build: () => decapitated(),
+    explain: 'Without the tip there is no source of auxin and nothing to detect the light. Growth slows as the remaining auxin is used up, and there is no bending. The Darwins concluded that the tip is needed for the response.' },
+  { id: 'opaque', who: 'Darwin and Darwin, 1880', title: 'Opaque cap over the tip',
+    setup: 'A light-proof cap covers only the tip.',
+    build: () => { const o = intact(); o.cap = 'opaque'; return o; },
+    explain: 'The coleoptile keeps growing but does not bend. Light must be detected at the tip, even though the bending happens further down.' },
+  { id: 'clear', who: 'Darwin and Darwin, 1880', title: 'Transparent cap over the tip',
+    setup: 'A clear cap covers only the tip.',
+    build: () => { const o = intact(); o.cap = 'transparent'; return o; },
+    explain: 'It bends as normal. This is a control for the opaque cap: wearing a cap does not stop the response, blocking light does.' },
+  { id: 'collar', who: 'Darwin and Darwin, 1880', title: 'Opaque collar below the tip',
+    setup: 'A light-proof sleeve covers the region that normally bends. The tip is uncovered.',
+    build: () => { const o = intact(); o.collar = true; return o; },
+    explain: 'It bends even though the bending region is in the dark. The Darwins proposed that an "influence" travels from the tip to the region below.' },
+  { id: 'gelatin', who: 'Boysen-Jensen, 1913', title: 'Tip separated by gelatin',
+    setup: 'The tip is cut off, a thin block of gelatin is placed on the stump, and the tip is put back on top.',
+    build: () => { const o = intact(); o.barrier = { type: 'gelatin', at: 11 }; return o; },
+    explain: 'It bends. Chemicals can diffuse through gelatin, so the signal from the tip is a substance that moves through the tissue.' },
+  { id: 'mica', who: 'Boysen-Jensen, 1913', title: 'Tip separated by mica',
+    setup: 'As before, but a thin sheet of mica (impermeable to chemicals) replaces the gelatin.',
+    build: () => { const o = intact(); o.barrier = { type: 'mica', at: 11 }; return o; },
+    explain: 'Little growth and no bending. The messenger cannot pass through mica, which supports the idea that it is a chemical.' },
+  { id: 'mica-shaded', who: 'Boysen-Jensen, 1913', title: 'Mica inserted on the shaded side',
+    setup: 'A slit is cut just below the tip on the shaded (left) side and a mica plate is pushed in halfway across.',
+    build: () => { const o = intact(); o.barrier = { type: 'mica-left', at: 11 }; return o; },
+    explain: 'Little or no bending. The growth substance travels down the shaded side, so blocking that side stops the response.' },
+  { id: 'mica-lit', who: 'Boysen-Jensen, 1913', title: 'Mica inserted on the lit side',
+    setup: 'The same mica plate, but inserted on the lit (right) side.',
+    build: () => { const o = intact(); o.barrier = { type: 'mica-right', at: 11 }; return o; },
+    explain: 'It still bends toward the light, because the growth substance moves down the shaded side. In this model the bend is even stronger than the control, because the lit side below the mica receives almost no auxin at all.' },
+  { id: 'went', who: 'Went, 1926 to 1928', title: 'Agar block on one side, in the dark',
+    setup: 'Went stood cut tips on agar so the growth substance diffused into it. A small block of this agar is placed on the left half of a decapitated coleoptile, which is kept in the dark.',
+    build: () => { const o = decapitated(0.2); o.agar = { side: 'L', conc: S.bench.conc }; return o; },
+    went: true,
+    explain: 'The side under the block grows faster, so the coleoptile bends away from it, with no light at all. This showed the substance itself causes the bending. Curvature increases with concentration, so Went used the angle to measure auxin (the oat curvature test). Try several concentrations and graph angle against concentration.' }
+];
+
+// ---------- measurements ----------
+const toDeg = r => r * 180 / Math.PI;
+const wrap = a => { while (a > Math.PI) a -= TAU; while (a < -Math.PI) a += TAU; return a; };
+function zoneSplit(org) {
+  let L = 0, R = 0;
+  const hi = org.N - 1 - (org.tip ? 2 : 0), lo = Math.max(0, hi - 5);
+  for (let i = lo; i <= hi; i++) { L += org.aL[i]; R += org.aR[i]; }
+  return { L, R, fracL: (L + R) > 1e-6 ? L / (L + R) : 0.5, mid: Math.round((lo + hi) / 2) };
+}
+// sign: + if left normal points toward vector v
+function leftFacing(org, i, rot, vx, vy) {
+  const th = segDirs(org, rot)[i];
+  return -Math.sin(th) * vx + Math.cos(th) * vy;
+}
+const totalLen = o => o.len.reduce((a, b) => a + b, 0);
+
+// ---------- drawing the organ ----------
+function geom(org, rot) {
+  const dirs = segDirs(org, rot), N = org.N, pts = [{ x: 0, y: 0 }];
+  for (let i = 0; i < N; i++) pts.push({ x: pts[i].x + org.len[i] * Math.cos(dirs[i]), y: pts[i].y + org.len[i] * Math.sin(dirs[i]) });
+  const L = [], R = [], ws = [], nrm = [];
+  for (let j = 0; j <= N; j++) {
+    const th = j === 0 ? dirs[0] : j === N ? dirs[N-1] : dirs[j-1] + wrap(dirs[j] - dirs[j-1]) / 2;
+    const w = org.width * (1 - (org.type === 'root' ? 0.35 : 0.18) * j / N) / 2;
+    const nx = -Math.sin(th), ny = Math.cos(th);
+    nrm.push([nx, ny]); ws.push(w);
+    L.push({ x: pts[j].x + nx * w, y: pts[j].y + ny * w });
+    R.push({ x: pts[j].x - nx * w, y: pts[j].y - ny * w });
+  }
+  return { dirs, pts, L, R, ws, nrm };
+}
+function tipArc(g, org, side) {
+  // quarter ellipse from side edge to tip point
+  const N = org.N, c = g.pts[N], r = g.ws[N], th = g.dirs[N-1];
+  const k = org.type === 'root' ? 1.9 : 1.15;
+  const dx = Math.cos(th), dy = Math.sin(th), [nx, ny] = g.nrm[N], s = side === 'L' ? 1 : -1;
+  const out = [];
+  for (let q = 0; q <= 10; q++) {
+    const t = q / 10 * Math.PI / 2;
+    out.push({ x: c.x + s * nx * r * Math.cos(t) + dx * r * k * Math.sin(t), y: c.y + s * ny * r * Math.cos(t) + dy * r * k * Math.sin(t) });
+  }
+  return out;
+}
+function poly(ctx, ox, oy, P, fill, stroke, lw) {
+  ctx.beginPath();
+  P.forEach((p, k) => k ? ctx.lineTo(ox + p.x, oy - p.y) : ctx.moveTo(ox + p.x, oy - p.y));
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 1; ctx.stroke(); }
+}
+function drawOrgan(ctx, org, ox, oy, rot, opt) {
+  const g = geom(org, rot), N = org.N, show = S.showAuxin;
+  const plain = org.type === 'root' ? ROOT_PLAIN : SHOOT_PLAIN;
+  for (let i = 0; i < N; i++) {
+    const cl = show ? heat(org.aL[i]) : plain, cr = show ? heat(org.aR[i]) : plain;
+    poly(ctx, ox, oy, [g.pts[i], g.L[i], g.L[i+1], g.pts[i+1]], cl, cl, 0.7);
+    poly(ctx, ox, oy, [g.pts[i], g.R[i], g.R[i+1], g.pts[i+1]], cr, cr, 0.7);
+  }
+  const hasDome = org.tip || org.type === 'root';
+  if (hasDome) {
+    const aL = tipArc(g, org, 'L'), aR = tipArc(g, org, 'R');
+    const cl = show ? heat(org.aL[N-1]) : plain, cr = show ? heat(org.aR[N-1]) : plain;
+    poly(ctx, ox, oy, [g.pts[N], ...aL], cl, cl, 0.7);
+    poly(ctx, ox, oy, [g.pts[N], ...aR], cr, cr, 0.7);
+  }
+  // midline between the halves
+  if (show) {
+    ctx.beginPath();
+    g.pts.forEach((p, k) => k ? ctx.lineTo(ox + p.x, oy - p.y) : ctx.moveTo(ox + p.x, oy - p.y));
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1; ctx.stroke();
+  }
+  // outline
+  ctx.beginPath();
+  g.L.forEach((p, k) => k ? ctx.lineTo(ox + p.x, oy - p.y) : ctx.moveTo(ox + p.x, oy - p.y));
+  if (hasDome) {
+    tipArc(g, org, 'L').forEach(p => ctx.lineTo(ox + p.x, oy - p.y));
+    tipArc(g, org, 'R').reverse().forEach(p => ctx.lineTo(ox + p.x, oy - p.y));
+  }
+  for (let j = N; j >= 0; j--) ctx.lineTo(ox + g.R[j].x, oy - g.R[j].y);
+  ctx.strokeStyle = opt.outline || 'rgba(28,52,30,0.85)'; ctx.lineWidth = 1.5; ctx.stroke();
+  return g;
+}
+function drawSelection(ctx, g, i, ox, oy, color) {
+  const pad = 4, [n0x, n0y] = g.nrm[i], [n1x, n1y] = g.nrm[i+1];
+  const w0 = g.ws[i] + pad, w1 = g.ws[i+1] + pad;
+  const P = [
+    { x: g.pts[i].x + n0x * w0, y: g.pts[i].y + n0y * w0 }, { x: g.pts[i+1].x + n1x * w1, y: g.pts[i+1].y + n1y * w1 },
+    { x: g.pts[i+1].x - n1x * w1, y: g.pts[i+1].y - n1y * w1 }, { x: g.pts[i].x - n0x * w0, y: g.pts[i].y - n0y * w0 }
+  ];
+  ctx.setLineDash([4, 3]);
+  poly(ctx, ox, oy, P, null, color, 2);
+  ctx.setLineDash([]);
+}
+// band across the organ at point j (perpendicular), from side a to side b (multipliers of half-width)
+function bandAt(g, j, from, to, extra, thick) {
+  const p = g.pts[j], [nx, ny] = g.nrm[j], w = g.ws[j] + extra;
+  const th = g.dirs[Math.min(j, g.dirs.length - 1)], dx = Math.cos(th) * thick / 2, dy = Math.sin(th) * thick / 2;
+  const A = { x: p.x + nx * w * from, y: p.y + ny * w * from }, B = { x: p.x + nx * w * to, y: p.y + ny * w * to };
+  return [{ x: A.x - dx, y: A.y - dy }, { x: B.x - dx, y: B.y - dy }, { x: B.x + dx, y: B.y + dy }, { x: A.x + dx, y: A.y + dy }];
+}
+function sleeve(g, i0, i1, extra) {
+  const P = [];
+  for (let j = i0; j <= i1; j++) P.push({ x: g.pts[j].x + g.nrm[j][0] * (g.ws[j] + extra), y: g.pts[j].y + g.nrm[j][1] * (g.ws[j] + extra) });
+  for (let j = i1; j >= i0; j--) P.push({ x: g.pts[j].x - g.nrm[j][0] * (g.ws[j] + extra), y: g.pts[j].y - g.nrm[j][1] * (g.ws[j] + extra) });
+  return P;
+}
+function drawBenchExtras(ctx, org, g, ox, oy) {
+  const N = org.N;
+  if (org.collar) poly(ctx, ox, oy, sleeve(g, 7, 11, 3), 'rgba(40,40,40,0.93)', '#111', 1);
+  if (org.barrier) {
+    const j = org.barrier.at + 1, t = org.barrier.type;
+    if (t === 'gelatin') poly(ctx, ox, oy, bandAt(g, j, 1, -1, 3, 7), 'rgba(160,205,235,0.95)', '#4F7FA3', 1);
+    if (t === 'mica') poly(ctx, ox, oy, bandAt(g, j, 1, -1, 7, 4.5), '#3D434A', '#1E2226', 1);
+    if (t === 'mica-left') poly(ctx, ox, oy, bandAt(g, j, 1.6, 0, 0, 4.5), '#3D434A', '#1E2226', 1);
+    if (t === 'mica-right') poly(ctx, ox, oy, bandAt(g, j, 0, -1.6, 0, 4.5), '#3D434A', '#1E2226', 1);
+  }
+  if (org.cap === 'opaque' || org.cap === 'transparent') {
+    const base = sleeve(g, N - 2, N, 3), half = base.length / 2;
+    const left = base.slice(0, half), right = base.slice(half);
+    const domeL = tipArc(g, org, 'L').map((p, k, arr) => { const c = g.pts[N]; return { x: c.x + (p.x - c.x) * 1.25, y: c.y + (p.y - c.y) * 1.25 }; });
+    const domeR = tipArc(g, org, 'R').map(p => { const c = g.pts[N]; return { x: c.x + (p.x - c.x) * 1.25, y: c.y + (p.y - c.y) * 1.25 }; }).reverse();
+    const P = [...left, ...domeL, ...domeR, ...right];
+    if (org.cap === 'opaque') poly(ctx, ox, oy, P, 'rgba(38,38,38,0.95)', '#111', 1);
+    else { ctx.setLineDash([3, 3]); poly(ctx, ox, oy, P, 'rgba(200,228,250,0.28)', '#4F7FA3', 1.5); ctx.setLineDash([]); }
+  }
+  if (org.agar) {
+    const c = g.pts[N], [nx, ny] = g.nrm[N], th = g.dirs[N-1], dx = Math.cos(th), dy = Math.sin(th), w = g.ws[N] + 2;
+    const P = [{ x: c.x, y: c.y }, { x: c.x + nx * w, y: c.y + ny * w }, { x: c.x + nx * w + dx * 20, y: c.y + ny * w + dy * 20 }, { x: c.x + dx * 20, y: c.y + dy * 20 }];
+    poly(ctx, ox, oy, P, '#E7C766', '#9C7A25', 1.2);
+  }
+  // feature labels, placed to the side of the stem
+  const tagAt = (j, text) => {
+    const p = g.pts[Math.min(j, N)], x = ox + p.x + g.ws[Math.min(j, N)] + 14, y = oy - p.y;
+    ctx.strokeStyle = '#56655F'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(ox + p.x + g.ws[Math.min(j, N)] + 4, y); ctx.lineTo(x - 3, y); ctx.stroke();
+    label(ctx, text, x, y, org.agar ? '#D8E2DE' : '#1C2826', 'left', 13);
+  };
+  if (org.collar) tagAt(9, 'opaque collar');
+  if (org.barrier) tagAt(org.barrier.at + 1, { gelatin: 'gelatin', mica: 'mica', 'mica-left': 'mica (shaded side)', 'mica-right': 'mica (lit side)' }[org.barrier.type]);
+  if (org.cap === 'opaque') tagAt(N - 1, 'opaque cap');
+  if (org.cap === 'transparent') tagAt(N - 1, 'clear cap');
+  if (org.agar) tagAt(N, 'agar block with auxin');
+  if (!org.tip && !org.agar) tagAt(N, 'tip removed');
+  if (!org.tip && !org.agar) {
+    // cut surface
+    const a = g.L[N], b = g.R[N];
+    ctx.beginPath(); ctx.moveTo(ox + a.x, oy - a.y); ctx.lineTo(ox + b.x, oy - b.y);
+    ctx.strokeStyle = '#8A3B2A'; ctx.lineWidth = 2.5; ctx.stroke();
+  }
+}
+
+// ---------- scene backgrounds ----------
+function drawLamp(ctx, x, y) {
+  ctx.fillStyle = '#F2C230'; ctx.strokeStyle = '#A27A0C'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(x, y, 15, 0, TAU); ctx.fill(); ctx.stroke();
+  for (let k = 0; k < 8; k++) {
+    const a = k * TAU / 8;
+    ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * 20, y + Math.sin(a) * 20); ctx.lineTo(x + Math.cos(a) * 27, y + Math.sin(a) * 27); ctx.stroke();
+  }
+}
+function drawRays(ctx, dx, dy, I) {
+  // dx,dy: unit vector from plant toward light (math coords)
+  ctx.save();
+  ctx.strokeStyle = `rgba(214,163,20,${0.08 + 0.22 * I})`; ctx.lineWidth = 1.2; ctx.setLineDash([10, 9]);
+  const px = -dy, py = dx; // perpendicular
+  for (let k = -8; k <= 8; k++) {
+    const cx = 300 + px * k * 42, cy = 280 - py * k * 42;
+    ctx.beginPath(); ctx.moveTo(cx + dx * 600, cy - dy * 600); ctx.lineTo(cx - dx * 600, cy + dy * 600); ctx.stroke();
+  }
+  ctx.restore();
+}
+function label(ctx, text, x, y, color, align, size) {
+  ctx.font = `${size || 14}px "Atkinson Hyperlegible", system-ui, sans-serif`;
+  ctx.fillStyle = color; ctx.textAlign = align || 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, y);
+}
+function drawPot(ctx, x, y) {
+  ctx.fillStyle = '#8F7360';
+  ctx.beginPath(); ctx.moveTo(x - 48, y + 4); ctx.lineTo(x + 48, y + 4); ctx.lineTo(x + 36, y + 70); ctx.lineTo(x - 36, y + 70); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#7C6150'; ctx.fillRect(x - 52, y - 2, 104, 12);
+  ctx.fillStyle = '#4C3C30'; ctx.beginPath(); ctx.ellipse(x, y, 46, 5, 0, 0, TAU); ctx.fill();
+}
+
+const geoms = { list: [] }; // for hit testing
+function render() {
+  const ctx = simCtx; if (!ctx) return;
+  ctx.clearRect(0, 0, W, H);
+  geoms.list = [];
+  if (S.mode === 'photo') renderPhoto(ctx);
+  else if (S.mode === 'grav') renderGrav(ctx);
+  else renderBench(ctx);
+  renderCells(); renderDose(); renderReadouts();
+  $('clock').textContent = fmtTime(currentT());
+}
+function renderPhoto(ctx) {
+  const p = S.photo, lit = p.I > 0, [ox, oy] = ORIGIN.photo;
+  ctx.fillStyle = lit ? '#FBFCFA' : '#222A2D'; ctx.fillRect(0, 0, W, H);
+  if (lit) {
+    const r = p.angle * Math.PI / 180, dx = Math.sin(r), dy = Math.cos(r);
+    drawRays(ctx, dx, dy, p.I);
+    // lamp position on a circle, clamped inside canvas
+    let lx = 300 + dx * 255, ly = 270 - dy * 240;
+    lx = Math.min(W - 32, Math.max(32, lx)); ly = Math.max(34, ly);
+    drawLamp(ctx, lx, ly);
+  } else label(ctx, 'Light off', 18, 24, '#C9D4D0');
+  drawPot(ctx, ox, oy);
+  const g = drawOrgan(ctx, p.organ, ox, oy, 0, {});
+  geoms.list.push({ key: 'shoot', org: p.organ, g, ox, oy });
+  if (p.sel != null) drawSelection(ctx, g, p.sel, ox, oy, lit ? '#2A5C8C' : '#9CC3EA');
+}
+function renderGrav(ctx) {
+  const gr = S.grav, [ox, oy] = ORIGIN.grav;
+  ctx.fillStyle = '#20282B'; ctx.fillRect(0, 0, W, H);
+  label(ctx, 'In darkness', W - 18, 24, '#AFC0BA', 'right');
+  // gravity indicator
+  const gx = 40, gy = 60;
+  ctx.save(); ctx.translate(gx, gy);
+  let ga = Math.PI / 2; // pointing down on screen
+  if (gr.clino) ga = performance.now() / 1000 * Math.PI + Math.PI / 2;
+  ctx.rotate(ga - Math.PI / 2);
+  ctx.strokeStyle = '#D8E2DE'; ctx.fillStyle = '#D8E2DE'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(0, -22); ctx.lineTo(0, 18); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-7, 12); ctx.lineTo(0, 24); ctx.lineTo(7, 12); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  label(ctx, gr.clino ? 'Gravity, as the seedling feels it on the clinostat' : 'Gravity', 66, 60, '#D8E2DE');
+  const drawRot = gr.clino ? gr.rot : gr.rot; // plant drawn in its starting orientation while on the clinostat
+  const rr = drawRot * Math.PI / 180;
+  const gS = drawOrgan(ctx, gr.shoot, ox, oy, rr, { outline: 'rgba(10,20,12,0.9)' });
+  const gR = drawOrgan(ctx, gr.root, ox, oy, rr, { outline: 'rgba(10,20,12,0.9)' });
+  // seed
+  ctx.save(); ctx.translate(ox, oy); ctx.rotate(-rr);
+  ctx.fillStyle = '#C8A56E'; ctx.strokeStyle = '#6E5530'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(0, 0, 20, 13, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.restore();
+  geoms.list.push({ key: 'shoot', org: gr.shoot, g: gS, ox, oy }, { key: 'root', org: gr.root, g: gR, ox, oy });
+  if (gr.sel) {
+    const e = gr.sel.organ === 'shoot' ? gS : gR;
+    drawSelection(ctx, e, gr.sel.i, ox, oy, '#9CC3EA');
+  }
+  label(ctx, 'Shoot', 18, H - 44, '#AFC0BA'); label(ctx, 'Root', 18, H - 22, '#AFC0BA');
+  ctx.fillStyle = SHOOT_PLAIN; ctx.fillRect(70, H - 50, 14, 12);
+  ctx.fillStyle = ROOT_PLAIN; ctx.fillRect(70, H - 28, 14, 12);
+  if (gr.clino) label(ctx, 'Clinostat on: the seedling turns slowly, so gravity acts on every side in turn', 18, 96, '#D8E2DE', 'left', 13);
+}
+function renderBench(ctx) {
+  const b = S.bench, e = EXPS[b.exp], [ox, oy] = ORIGIN.bench;
+  const dark = !!e.went;
+  ctx.fillStyle = dark ? '#222A2D' : '#FBFCFA'; ctx.fillRect(0, 0, W, H);
+  if (!dark) { drawRays(ctx, 1, 0, 1); drawLamp(ctx, W - 36, 200); label(ctx, 'Light', W - 36, 236, '#7A5C08', 'center', 13); }
+  else label(ctx, 'In darkness', W - 18, 24, '#AFC0BA', 'right');
+  // ground
+  ctx.fillStyle = dark ? '#3A3430' : '#8F7360'; ctx.fillRect(220, oy, 160, 14);
+  ctx.fillStyle = dark ? '#2C2724' : '#6D5546'; ctx.fillRect(220, oy + 14, 160, 6);
+  const g = drawOrgan(ctx, b.organ, ox, oy, 0, { outline: dark ? 'rgba(10,20,12,0.9)' : undefined });
+  drawBenchExtras(ctx, b.organ, g, ox, oy);
+  geoms.list.push({ key: 'shoot', org: b.organ, g, ox, oy });
+  if (b.sel != null) drawSelection(ctx, g, b.sel, ox, oy, dark ? '#9CC3EA' : '#2A5C8C');
+  label(ctx, e.title, 18, 24, dark ? '#D8E2DE' : '#1C2826', 'left', 15);
+  label(ctx, e.who, 18, 44, dark ? '#AFC0BA' : '#56655F', 'left', 13);
+  if (b.phase === 'running') {
+    const f = Math.min(1, b.t / BENCH_MIN);
+    ctx.fillStyle = dark ? '#3E4A4E' : '#DCE4E0'; ctx.fillRect(18, 58, 160, 6);
+    ctx.fillStyle = '#2A5C8C'; ctx.fillRect(18, 58, 160 * f, 6);
+  }
+}
+
+// ---------- selection ----------
+function currentSel() {
+  if (S.mode === 'photo') return { org: S.photo.organ, i: S.photo.sel, key: 'shoot' };
+  if (S.mode === 'grav') { const s = S.grav.sel; return { org: s.organ === 'shoot' ? S.grav.shoot : S.grav.root, i: s.i, key: s.organ }; }
+  return { org: S.bench.organ, i: Math.min(S.bench.sel, S.bench.organ.N - 1), key: 'shoot' };
+}
+function defaultSel(org) { return zoneSplit(org).mid; }
+$('sim').addEventListener('click', ev => {
+  const cv = $('sim'), rect = cv.getBoundingClientRect();
+  const x = (ev.clientX - rect.left) * W / rect.width, y = (ev.clientY - rect.top) * H / rect.height;
+  let best = null, bd = 32;
+  for (const e of geoms.list) {
+    for (let i = 0; i < e.org.N; i++) {
+      const mx = e.ox + (e.g.pts[i].x + e.g.pts[i+1].x) / 2, my = e.oy - (e.g.pts[i].y + e.g.pts[i+1].y) / 2;
+      const d = Math.hypot(mx - x, my - y);
+      if (d < bd) { bd = d; best = { key: e.key, i }; }
+    }
+  }
+  if (!best) return;
+  if (S.mode === 'photo') S.photo.sel = best.i;
+  else if (S.mode === 'grav') S.grav.sel = { organ: best.key, i: best.i };
+  else S.bench.sel = best.i;
+  render();
+});
+
+// ---------- side naming ----------
+function sideNames(org, i) {
+  // returns {L:'...', R:'...'} descriptive names for the two halves at segment i
+  if (S.mode === 'photo') {
+    const env = photoEnv();
+    if (env.light) {
+      const f = leftFacing(org, i, 0, env.light.dx, env.light.dy);
+      if (f > 0.15) return { L: 'Lit side', R: 'Shaded side' };
+      if (f < -0.15) return { L: 'Shaded side', R: 'Lit side' };
+    }
+    return { L: 'Left side', R: 'Right side' };
+  }
+  if (S.mode === 'grav') {
+    if (S.grav.clino) return { L: 'Side A', R: 'Side B' };
+    const f = leftFacing(org, i, S.grav.rot * Math.PI / 180, 0, -1);
+    if (f > 0.15) return { L: 'Lower side', R: 'Upper side' };
+    if (f < -0.15) return { L: 'Upper side', R: 'Lower side' };
+    return { L: 'Left side', R: 'Right side' };
+  }
+  const e = EXPS[S.bench.exp];
+  if (e.went) return { L: 'Block side', R: 'Far side' };
+  return { L: 'Shaded side', R: 'Lit side' };
+}
+
+// ---------- cells view ----------
+function prng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const wallPH = G => Math.max(4.5, Math.min(6.2, 6.25 - 2.1 * G));
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function renderCells() {
+  const ctx = cellCtx; if (!ctx) return;
+  ctx.clearRect(0, 0, CW, CH);
+  const sel = currentSel(), org = sel.org, i = sel.i;
+  const names = sideNames(org, i);
+  const now = performance.now() / 1000;
+  const sides = [['L', org.aL[i], 105], ['R', org.aR[i], 255]];
+  const lat = org.latActive[i] || 0;
+  // key
+  ctx.fillStyle = '#C9482B'; ctx.beginPath(); ctx.arc(12, 14, 3.5, 0, TAU); ctx.fill();
+  label(ctx, 'auxin', 20, 14, '#56655F', 'left', 12);
+  ctx.fillStyle = '#7B3FA0'; ctx.fillRect(66, 11, 12, 5);
+  label(ctx, 'PIN carrier', 82, 14, '#56655F', 'left', 12);
+  label(ctx, 'H⁺', 158, 14, '#2A5C8C', 'left', 12);
+  label(ctx, 'proton in wall', 176, 14, '#56655F', 'left', 12);
+  label(ctx, '↑ toward the tip', 12, 36, '#56655F', 'left', 12);
+  // statocyte inset
+  if (S.mode === 'grav') {
+    const bx = 298, by = 24, bs = 44;
+    ctx.fillStyle = '#F6F4EA'; ctx.strokeStyle = '#7C9C5E'; ctx.lineWidth = 2; roundRect(ctx, bx, by, bs, bs, 6); ctx.fill(); ctx.stroke();
+    const th = segDirs(org, (S.grav.clino ? S.grav.clinoRot : S.grav.rot * Math.PI / 180))[org.N - 1];
+    const ga = -th; // gravity direction in diagram frame (tip = up)
+    const gx = Math.cos(ga), gy = -Math.sin(ga);
+    const rnd = prng(7);
+    for (let k = 0; k < 6; k++) {
+      let px, py;
+      if (S.grav.clino) { px = bx + 12 + rnd() * (bs - 24); py = by + 12 + rnd() * (bs - 24); }
+      else {
+        const spread = (k % 4 - 1.5) * 6.5;
+        px = bx + bs / 2 + gx * 14 + (-gy) * spread + (rnd() - 0.5) * 3;
+        py = by + bs / 2 + gy * 14 + gx * spread + (rnd() - 0.5) * 3;
+        if (k >= 4) { px -= gx * 7; py -= gy * 7; }
+      }
+      ctx.fillStyle = '#E3D9B0'; ctx.strokeStyle = '#8C7A4A'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(px, py, 4, 0, TAU); ctx.fill(); ctx.stroke();
+    }
+    label(ctx, sel.key === 'root' ? 'root cap cell' : 'statocyte', bx + bs / 2, by + bs + 10, '#56655F', 'center', 10.5);
+    label(ctx, 'amyloplasts', bx + bs / 2, by + bs + 22, '#8C7A4A', 'center', 10.5);
+  }
+  const baseY = CH - 22;
+  const pinsLat = Math.abs(lat) > 0.03 ? 1 + Math.round(Math.abs(lat) * 3) : 0;
+  const latLeft = lat > 0; // auxin pushed toward the left half
+  for (const [side, a, cx] of sides) {
+    const G = growthCurve(org.type, a), ph = wallPH(G);
+    const h = Math.max(28, Math.min(84, 30 + 260 * (G - 0.25))), w = 92;
+    const wall = 1.4 + 4 * Math.min(1, Math.max(0, (ph - 4.6) / 1.4));
+    for (let c = 0; c < 2; c++) {
+      const y1 = baseY - (c + 1) * h - c * 6, x0 = cx - w / 2;
+      ctx.fillStyle = '#F3F8EE'; ctx.strokeStyle = '#7C9C5E'; ctx.lineWidth = wall;
+      roundRect(ctx, x0, y1, w, h, 7); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = '#2A5C8C'; ctx.lineWidth = 0.8;
+      roundRect(ctx, x0 + wall / 2 + 2, y1 + wall / 2 + 2, w - wall - 4, h - wall - 4, 5); ctx.stroke();
+      // basal PINs
+      ctx.fillStyle = '#7B3FA0';
+      for (let k = 0; k < 3; k++) ctx.fillRect(x0 + 18 + k * 24, y1 + h - wall / 2 - 5, 12, 4);
+      // lateral PINs
+      for (let k = 0; k < pinsLat; k++) {
+        const px = latLeft ? x0 + wall / 2 + 1 : x0 + w - wall / 2 - 5;
+        ctx.fillRect(px, y1 + 10 + k * ((h - 26) / Math.max(1, pinsLat - 1 || 1)), 4, 11);
+      }
+      // auxin dots
+      const n = Math.min(30, Math.round(a * 9)), rnd = prng((side === 'L' ? 11 : 29) + c * 101 + i * 7);
+      ctx.fillStyle = '#C9482B';
+      for (let k = 0; k < n; k++) {
+        const bx = x0 + 10 + rnd() * (w - 20), by = y1 + 9 + rnd() * (h - 18), ph0 = rnd() * TAU;
+        ctx.beginPath(); ctx.arc(bx + Math.sin(now * 1.7 + ph0) * 2.2, by + Math.cos(now * 1.3 + ph0) * 2.2, 2.6, 0, TAU); ctx.fill();
+      }
+      // protons in the wall
+      const np = Math.max(0, Math.round((6.25 - ph) * 4));
+      const r2 = prng(500 + c * 13 + (side === 'L' ? 1 : 2));
+      for (let k = 0; k < np; k++) {
+        const onLeft = r2() < 0.5, yy = y1 + 8 + r2() * (h - 16);
+        label(ctx, 'H⁺', onLeft ? x0 - 13 : x0 + w + 3, yy, '#2A5C8C', 'left', 10);
+      }
+    }
+    label(ctx, names[side], cx, baseY + 12, '#1C2826', 'center', 12.5);
+  }
+  // flow arrows
+  ctx.strokeStyle = '#7B3FA0'; ctx.fillStyle = '#7B3FA0'; ctx.lineWidth = 2;
+  if (pinsLat) {
+    const y = baseY - 70, x1 = latLeft ? 200 : 160, x2 = latLeft ? 160 : 200;
+    ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
+    const d = latLeft ? -1 : 1;
+    ctx.beginPath(); ctx.moveTo(x2, y); ctx.lineTo(x2 - d * 8, y - 5); ctx.lineTo(x2 - d * 8, y + 5); ctx.closePath(); ctx.fill();
+    label(ctx, 'auxin', 180, y - 12, '#7B3FA0', 'center', 11);
+  }
+  // table
+  const rows = sides.map(([s, a]) => { const G = growthCurve(org.type, a); return { s, a, G, ph: wallPH(G) }; });
+  const maxG = 1;
+  $('cells-table').innerHTML =
+    `<thead><tr><th></th><th>${names.L}</th><th>${names.R}</th></tr></thead><tbody>` +
+    `<tr><td>Auxin (relative)</td><td>${rows[0].a.toFixed(2)}</td><td>${rows[1].a.toFixed(2)}</td></tr>` +
+    `<tr><td>Cell wall pH (model)</td><td>${rows[0].ph.toFixed(1)}</td><td>${rows[1].ph.toFixed(1)}</td></tr>` +
+    `<tr><td>Elongation rate (relative)</td><td>${(rows[0].G / maxG).toFixed(2)}</td><td>${(rows[1].G / maxG).toFixed(2)}</td></tr></tbody>`;
+  const organName = sel.key === 'root' ? 'root' : (S.mode === 'bench' ? 'coleoptile' : 'shoot');
+  const fromTip = org.N - 1 - i + (org.tip ? 0 : 2);
+  const where = fromTip <= 1 ? 'the tip' : fromTip <= 7 ? 'the elongation zone' : 'older, mature tissue';
+  $('cells-where').textContent = `Showing cells in ${where} of the ${organName}. Click elsewhere on the plant to move.`;
+}
+
+// ---------- dose response ----------
+function renderDose() {
+  const ctx = doseCtx; if (!ctx) return;
+  ctx.clearRect(0, 0, DW, DH);
+  const L = 46, R = DW - 10, T = 12, B = DH - 40;
+  const xmin = -5, xmax = 3;
+  const X = lx => L + (lx - xmin) / (xmax - xmin) * (R - L), Y = g => B - g * (B - T);
+  // typical range
+  ctx.fillStyle = '#EEF2F0'; ctx.fillRect(X(Math.log10(0.4)), T, X(Math.log10(2.2)) - X(Math.log10(0.4)), B - T);
+  label(ctx, 'normal range', (X(Math.log10(0.4)) + X(Math.log10(2.2))) / 2, T + 8, '#56655F', 'center', 10.5);
+  // axes
+  ctx.strokeStyle = '#8A9893'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(L, T); ctx.lineTo(L, B); ctx.lineTo(R, B); ctx.stroke();
+  const ticks = [[-4, '10⁻¹²'], [-2, '10⁻¹⁰'], [0, '10⁻⁸'], [2, '10⁻⁶']];
+  for (const [lx, t] of ticks) {
+    ctx.beginPath(); ctx.moveTo(X(lx), B); ctx.lineTo(X(lx), B + 4); ctx.stroke();
+    label(ctx, t, X(lx), B + 13, '#56655F', 'center', 11);
+  }
+  label(ctx, 'Auxin concentration (mol dm⁻³, approx.)', (L + R) / 2, B + 30, '#56655F', 'center', 11);
+  ctx.save(); ctx.translate(14, (T + B) / 2); ctx.rotate(-Math.PI / 2);
+  label(ctx, 'Elongation rate', 0, 0, '#56655F', 'center', 11); ctx.restore();
+  // curves
+  for (const [type, col] of [['root', '#9A6A3F'], ['shoot', '#3E7D4A']]) {
+    ctx.beginPath();
+    for (let k = 0; k <= 160; k++) {
+      const lx = xmin + (xmax - xmin) * k / 160, g = growthCurve(type, Math.pow(10, lx));
+      k ? ctx.lineTo(X(lx), Y(g)) : ctx.moveTo(X(lx), Y(g));
+    }
+    ctx.strokeStyle = col; ctx.lineWidth = 2.2; ctx.stroke();
+  }
+  label(ctx, 'Root', X(-2.3), Y(1) + 10, '#9A6A3F', 'center', 12);
+  label(ctx, 'Shoot', X(2.1), Y(0.9) + 2, '#3E7D4A', 'right', 12);
+  // markers
+  const sel = currentSel(), org = sel.org, names = sideNames(org, sel.i);
+  const pts = [['L', org.aL[sel.i]], ['R', org.aR[sel.i]]];
+  pts.sort((p, q) => p[1] - q[1]); // lower concentration first
+  pts.forEach(([s, a], k) => {
+    const lx = Math.max(xmin, Math.log10(Math.max(a, 1e-6))), g = growthCurve(org.type, a);
+    ctx.fillStyle = heat(a); ctx.strokeStyle = '#1C2826'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(X(lx), Y(g), 5.5, 0, TAU); ctx.fill(); ctx.stroke();
+    const short = names[s].replace(' side', '');
+    // lower concentration labelled to the left and above, higher to the right and below
+    label(ctx, short, X(lx) + (k ? 9 : -9), Y(g) + (k ? 13 : -13), '#1C2826', k ? 'left' : 'right', 11);
+  });
+}
+
+// ---------- readouts ----------
+function readout(v, k) { return `<div class="readout"><div class="v">${v}</div><div class="k">${k}</div></div>`; }
+function photoAngle() {
+  const p = S.photo, th = segDirs(p.organ, 0)[p.organ.N - 1];
+  const fromVert = toDeg(Math.PI / 2 - th); // + = toward right
+  return fromVert;
+}
+function photoMeasures() {
+  const p = S.photo, ang = photoAngle(), z = zoneSplit(p.organ), env = photoEnv();
+  let lightSide = 0;
+  if (env.light && Math.abs(p.angle) >= 10) lightSide = Math.sign(p.angle); // + right
+  const signed = lightSide ? ang * lightSide : ang;
+  let shadedPct = null;
+  if (env.light) {
+    const f = leftFacing(p.organ, z.mid, 0, env.light.dx, env.light.dy);
+    if (f < -0.15) shadedPct = z.fracL * 100; else if (f > 0.15) shadedPct = (1 - z.fracL) * 100;
+  }
+  return { ang, signed, lightSide, shadedPct, fracL: z.fracL };
+}
+function gravMeasures(org, isRoot) {
+  const rot = S.grav.rot * Math.PI / 180; // measured in the seedling's starting orientation
+  const th = segDirs(org, rot)[org.N - 1];
+  const target = isRoot ? -Math.PI / 2 : Math.PI / 2;
+  const off = Math.abs(toDeg(wrap(th - target)));
+  const z = zoneSplit(org);
+  const f = leftFacing(org, z.mid, rot, 0, -1);
+  let lowerPct = null;
+  if (!S.grav.clino) { if (f > 0.15) lowerPct = z.fracL * 100; else if (f < -0.15) lowerPct = (1 - z.fracL) * 100; }
+  return { off, lowerPct, fracL: z.fracL };
+}
+function benchMeasures() {
+  const b = S.bench, o = b.organ, th = segDirs(o, 0)[o.N - 1];
+  const cw = toDeg(Math.PI / 2 - th); // + = toward right (toward light / away from left block)
+  const z = zoneSplit(o);
+  const gain = totalLen(o) - b.L0;
+  return { cw, leftPct: z.fracL * 100, growth: b.refGain ? gain / b.refGain : 1 };
+}
+function renderReadouts() {
+  let html = '';
+  if (S.mode === 'photo') {
+    const m = photoMeasures();
+    const dir = Math.abs(m.ang) < 1 ? 'tip angle from vertical' : m.lightSide ? (m.signed > 0 ? 'tip angle, toward the light' : 'tip angle, away from the light') : `tip angle from vertical, to the ${m.ang > 0 ? 'right' : 'left'}`;
+    html += readout(`${Math.abs(m.ang).toFixed(0)}°`, dir);
+    html += m.shadedPct != null ? readout(`${m.shadedPct.toFixed(0)}%`, 'of auxin in the bending zone is on the shaded side')
+                                : readout(`${(m.fracL * 100).toFixed(0)}%`, 'of auxin in the bending zone is on the left side');
+    html += readout(lightText(), 'light');
+  } else if (S.mode === 'grav') {
+    const s = gravMeasures(S.grav.shoot, false), r = gravMeasures(S.grav.root, true);
+    html += readout(`${s.off.toFixed(0)}°`, 'shoot tip away from straight up');
+    html += readout(`${r.off.toFixed(0)}°`, 'root tip away from straight down');
+    const why = S.grav.clino ? 'no lasting lower side on the clinostat' : null;
+    html += readout(s.lowerPct != null ? `${s.lowerPct.toFixed(0)}%` : 'none', s.lowerPct != null ? 'of shoot auxin on the lower side' : (why || 'no lower side: shoot is vertical'));
+    html += readout(r.lowerPct != null ? `${r.lowerPct.toFixed(0)}%` : 'none', r.lowerPct != null ? 'of root auxin on the lower side' : (why || 'no lower side: root is vertical'));
+  } else {
+    const m = benchMeasures(), e = EXPS[S.bench.exp];
+    html += readout(`${Math.abs(m.cw).toFixed(0)}°`, e.went ? (Math.abs(m.cw) < 1 ? 'curvature' : m.cw > 0 ? 'curvature, away from the block' : 'curvature, toward the block')
+                                                   : (Math.abs(m.cw) < 1 ? 'curvature' : m.cw > 0 ? 'curvature, toward the light' : 'curvature, away from the light'));
+    html += readout(`${m.leftPct.toFixed(0)}%`, e.went ? 'of auxin in the bending zone is on the block side' : 'of auxin in the bending zone is on the shaded side');
+    html += readout(S.bench.t > 0 ? `${(m.growth * 100).toFixed(0)}%` : '—', 'growth compared with the intact control');
+  }
+  $('readouts').innerHTML = html;
+}
+function lightText() {
+  const p = S.photo;
+  if (p.I <= 0) return 'Off';
+  const a = p.angle;
+  if (a === 0) return 'Overhead';
+  const side = a > 0 ? 'right' : 'left', m = Math.abs(a);
+  if (m === 90) return `From the ${side}`;
+  return `${m}° to the ${side}`;
+}
+
+// ---------- time ----------
+const currentT = () => S.mode === 'photo' ? S.photo.t : S.mode === 'grav' ? S.grav.t : S.bench.t;
+function fmtTime(t) { const m = Math.floor(t); return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; }
+
+function stepSim(n) {
+  for (let k = 0; k < n; k++) {
+    if (S.mode === 'photo') { stepOrgan(S.photo.organ, photoEnv(), 0); S.photo.t++; }
+    else if (S.mode === 'grav') {
+      const g = S.grav;
+      let rot;
+      if (g.clino) { g.clinoRot += TAU / 10; rot = g.clinoRot; } else rot = g.rot * Math.PI / 180;
+      stepOrgan(g.shoot, GRAV_ENV, rot); stepOrgan(g.root, GRAV_ENV, rot); g.t++;
+    } else {
+      const b = S.bench; if (b.phase !== 'running') return;
+      stepOrgan(b.organ, EXPS[b.exp].went ? DARK : BENCH_LIGHT, 0); b.t++;
+      if (b.t >= BENCH_MIN) { finishBench(); return; }
+    }
+  }
+}
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  let speed = 0;
+  if (S.mode === 'bench') { if (S.bench.phase === 'running') speed = BENCH_SPEED; }
+  else if (S.running) speed = S.speed;
+  if (speed) {
+    S.acc += speed * dt;
+    const n = Math.min(20, Math.floor(S.acc));
+    S.acc -= n;
+    if (n) stepSim(n);
+  }
+  render();
+  requestAnimationFrame(frame);
+}
+
+// ---------- controls ----------
+function setRunning(r) {
+  S.running = r;
+  $('btn-play').textContent = r ? 'Pause' : 'Play';
+  if (r) $('hint').textContent = '';
+}
+$('btn-play').addEventListener('click', () => setRunning(!S.running));
+$('btn-reset').addEventListener('click', () => {
+  setRunning(false); S.acc = 0;
+  if (S.mode === 'photo') { S.photo.organ = newPhotoShoot(); S.photo.t = 0; }
+  if (S.mode === 'grav') { Object.assign(S.grav, newGrav()); S.grav.t = 0; S.grav.clinoRot = S.grav.rot * Math.PI / 180; }
+  render();
+});
+$('speed').addEventListener('change', e => { S.speed = +e.target.value; });
+$('show-auxin').addEventListener('change', e => { S.showAuxin = e.target.checked; render(); });
+function setShowAuxin(v) { S.showAuxin = v; $('show-auxin').checked = v; }
+
+// light
+function setLightAngle(a) {
+  S.photo.angle = a; $('light-angle').value = a;
+  $('light-angle-val').textContent = lightText();
+  document.querySelectorAll('#ctl-photo .chip').forEach(c => c.setAttribute('aria-pressed', String(+c.dataset.angle === a)));
+}
+$('light-angle').addEventListener('input', e => setLightAngle(+e.target.value));
+document.querySelectorAll('#ctl-photo .chip').forEach(c => c.addEventListener('click', () => setLightAngle(+c.dataset.angle)));
+$('light-int').addEventListener('input', e => {
+  S.photo.I = +e.target.value / 100;
+  $('light-int-val').textContent = S.photo.I > 0 ? `${e.target.value}%` : 'Off';
+  $('light-angle-val').textContent = lightText();
+});
+
+// gravity
+function setRot(deg) {
+  S.grav.rot = deg; S.grav.clinoRot = deg * Math.PI / 180;
+  document.querySelectorAll('#ctl-grav .chip').forEach(c => c.setAttribute('aria-pressed', String(+c.dataset.rot === deg)));
+  render();
+}
+document.querySelectorAll('#ctl-grav .chip').forEach(c => c.addEventListener('click', () => setRot(+c.dataset.rot)));
+$('clinostat').addEventListener('change', e => {
+  S.grav.clino = e.target.checked;
+  S.grav.clinoRot = S.grav.rot * Math.PI / 180;
+  render();
+});
+
+// tabs
+function setMode(m) {
+  setRunning(false);
+  S.mode = m;
+  document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mode === m)));
+  $('ctl-photo').hidden = m !== 'photo'; $('ctl-grav').hidden = m !== 'grav'; $('ctl-bench').hidden = m !== 'bench';
+  const bench = m === 'bench';
+  ['btn-play', 'btn-reset', 'speed'].forEach(id => { $(id).hidden = bench; });
+  document.querySelector('label[for="speed"]').hidden = bench;
+  $('btn-record').hidden = bench;
+  if (m === 'photo') { setShowAuxin(true); $('hint').textContent = S.photo.t ? '' : 'Press Play to start. Click the stem to inspect its cells.'; }
+  if (m === 'grav') { setShowAuxin(true); $('hint').textContent = S.grav.t ? '' : 'Turn the seedling on its side, then press Play.'; }
+  if (m === 'bench') { $('hint').textContent = ''; if (S.bench.phase !== 'done') setShowAuxin(false); }
+  render();
+}
+document.querySelectorAll('nav.tabs button').forEach((b, k, all) => {
+  b.addEventListener('click', () => setMode(b.dataset.mode));
+  b.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const n = all[(k + (e.key === 'ArrowRight' ? 1 : all.length - 1)) % all.length];
+    n.focus(); setMode(n.dataset.mode);
+  });
+});
+
+// ---------- bench ----------
+function buildExpList() {
+  $('exp-list').innerHTML = EXPS.map((e, k) =>
+    `<button class="exp-item" data-k="${k}" aria-pressed="${k === S.bench.exp}">${S.bench.done[e.id] ? '<span class="done">Done</span>' : ''}${e.title}<span class="who">${e.who}</span></button>`).join('');
+  $('exp-list').querySelectorAll('.exp-item').forEach(b => b.addEventListener('click', () => selectExp(+b.dataset.k)));
+}
+function benchSetup(keepPrediction) {
+  const b = S.bench, e = EXPS[b.exp];
+  b.organ = e.build(); b.t = 0; b.phase = 'setup'; b.L0 = totalLen(b.organ);
+  b.sel = defaultSel(b.organ);
+  if (!keepPrediction) b.predicted = null;
+  setShowAuxin(false);
+}
+function selectExp(k) {
+  if (S.bench.phase === 'running') return;
+  S.bench.exp = k;
+  benchSetup(false);
+  const e = EXPS[k];
+  $('exp-title').textContent = e.title;
+  $('exp-setup').textContent = e.setup;
+  $('went-field').hidden = !e.went;
+  const opts = e.went ? WENT_PRED : STD_PRED;
+  $('predict-options').innerHTML = opts.map(([v, t]) =>
+    `<label class="radio"><input type="radio" name="pred" value="${v}"> <span>${t}</span></label>`).join('');
+  $('predict-options').querySelectorAll('input').forEach(r => r.addEventListener('change', () => {
+    S.bench.predicted = r.value; $('btn-run').disabled = false;
+  }));
+  $('btn-run').disabled = true; $('btn-run').textContent = 'Run experiment';
+  $('exp-result').hidden = true;
+  buildExpList();
+  render();
+}
+$('went-conc').addEventListener('input', e => {
+  S.bench.conc = +e.target.value; $('went-conc-val').textContent = S.bench.conc.toFixed(2);
+  if (S.bench.phase !== 'running') { benchSetup(true); $('exp-result').hidden = true; $('btn-run').textContent = 'Run experiment'; render(); }
+});
+$('btn-run').addEventListener('click', () => {
+  if (!S.bench.predicted) return;
+  benchSetup(true);
+  S.bench.phase = 'running'; setShowAuxin(true);
+  $('btn-run').disabled = true; $('exp-result').hidden = true;
+  setBenchInputs(false);
+});
+function setBenchInputs(on) {
+  $('predict-options').querySelectorAll('input').forEach(i => { i.disabled = !on; });
+  $('went-conc').disabled = !on;
+  $('exp-list').querySelectorAll('button').forEach(b => { b.disabled = !on; });
+}
+function classify(cw, growth) {
+  if (Math.abs(cw) < 8) return growth < 0.7 ? 'none' : 'straight';
+  return cw > 0 ? 'toward' : 'away';
+}
+function finishBench() {
+  const b = S.bench, e = EXPS[b.exp];
+  b.phase = 'done';
+  const m = benchMeasures();
+  // signed so that + means "toward light" (light exps) or "away from block" (Went)
+  let outcome = classify(m.cw, m.growth);
+  if (e.went && (outcome === 'toward' || outcome === 'away')) outcome = m.cw > 0 ? 'away' : 'toward';
+  const opts = Object.fromEntries(e.went ? WENT_PRED : STD_PRED);
+  const match = outcome === b.predicted ||
+    (['straight', 'none'].includes(outcome) && ['straight', 'none'].includes(b.predicted));
+  const angTxt = `${Math.abs(m.cw).toFixed(0)}°`;
+  $('exp-result').innerHTML =
+    `<p><strong>Observed:</strong> ${opts[outcome]} (${angTxt} after ${BENCH_MIN} minutes; growth ${(m.growth * 100).toFixed(0)}% of the control).</p>` +
+    `<p><strong>You predicted:</strong> ${opts[b.predicted]}. ${match ? 'Your prediction matches.' : 'Your prediction does not match. What would explain the difference?'}</p>` +
+    `<p>${e.explain}</p>`;
+  $('exp-result').hidden = false;
+  $('btn-run').disabled = false; $('btn-run').textContent = 'Run again';
+  setBenchInputs(true);
+  b.done[e.id] = true; buildExpList();
+  const signed = e.went ? m.cw : m.cw; // + toward light, or + away from left-side block
+  addRow({
+    section: 'Classic experiments', organ: 'Coleoptile',
+    cond: e.went ? `${e.title}, concentration ${b.conc.toFixed(2)}` : e.title,
+    t: BENCH_MIN, angle: signed, auxin: m.leftPct,
+    notes: `Predicted: ${opts[b.predicted]}. Observed: ${opts[outcome]}.` + (e.went ? ' Angle + = away from block.' : ' Angle + = toward light.')
+  });
+}
+
+// ---------- data ----------
+function addRow(r) {
+  S.data.push(r); renderData();
+}
+function renderData() {
+  const tb = $('data-table').querySelector('tbody');
+  tb.innerHTML = S.data.map((r, k) =>
+    `<tr><td>${k + 1}</td><td>${r.section}</td><td>${r.organ}</td><td class="wrap">${r.cond}</td><td>${r.t}</td><td>${r.angle.toFixed(1)}</td><td>${r.auxin == null ? '—' : r.auxin.toFixed(0)}</td><td class="wrap">${r.notes || ''}</td></tr>`).join('');
+  $('data-empty').hidden = S.data.length > 0;
+}
+$('btn-record').addEventListener('click', () => {
+  if (S.mode === 'photo') {
+    const m = photoMeasures();
+    addRow({ section: 'Phototropism', organ: 'Shoot', cond: `Light ${lightText().toLowerCase()}${S.photo.I > 0 && S.photo.I < 1 ? `, brightness ${Math.round(S.photo.I * 100)}%` : ''}`,
+      t: S.photo.t, angle: m.signed, auxin: m.shadedPct,
+      notes: m.lightSide ? 'Angle + = toward light' : 'Angle + = to the right' });
+  } else if (S.mode === 'grav') {
+    const cond = ({ 0: 'Upright', 90: 'On its side', 180: 'Upside down' })[S.grav.rot] + (S.grav.clino ? ', clinostat on' : '');
+    const s = gravMeasures(S.grav.shoot, false), r = gravMeasures(S.grav.root, true);
+    addRow({ section: 'Gravitropism', organ: 'Shoot', cond, t: S.grav.t, angle: s.off, auxin: s.lowerPct, notes: 'Angle = shoot tip away from straight up; auxin = % on lower side' });
+    addRow({ section: 'Gravitropism', organ: 'Root', cond, t: S.grav.t, angle: r.off, auxin: r.lowerPct, notes: 'Angle = root tip away from straight down; auxin = % on lower side' });
+  }
+  toast('Recorded');
+});
+$('btn-clear').addEventListener('click', () => {
+  if (!S.data.length) return;
+  if (!confirm('Clear all rows from the data table?')) return;
+  S.data = []; renderData();
+});
+$('btn-copy').addEventListener('click', async () => {
+  if (!S.data.length) { toast('Nothing to copy yet'); return; }
+  const head = ['#', 'Section', 'Organ', 'Condition', 'Time (min)', 'Tip angle (deg)', 'Auxin on shaded or lower side (%)', 'Notes'];
+  const lines = [head.join('\t')].concat(S.data.map((r, k) =>
+    [k + 1, r.section, r.organ, r.cond, r.t, r.angle.toFixed(1), r.auxin == null ? '' : r.auxin.toFixed(0), r.notes || ''].join('\t')));
+  const text = lines.join('\n');
+  try { await navigator.clipboard.writeText(text); toast('Copied. Paste into cell A1 of a sheet.'); }
+  catch (err) {
+    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('Copied. Paste into cell A1 of a sheet.'); } catch (e2) { toast('Copy failed. Select the table and copy it manually.'); }
+    ta.remove();
+  }
+});
+let toastTimer;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800); }
+
+// ---------- init ----------
+function init() {
+  S.photo.organ = newPhotoShoot(); S.photo.sel = defaultSel(S.photo.organ);
+  Object.assign(S.grav, newGrav()); S.grav.sel = { organ: 'root', i: defaultSel(S.grav.root) };
+  // reference growth for the bench: intact control under side light
+  const ref = intact(), L0 = totalLen(ref);
+  for (let t = 0; t < BENCH_MIN; t++) stepOrgan(ref, BENCH_LIGHT, 0);
+  S.bench.refGain = totalLen(ref) - L0;
+  setLightAngle(90); setRot(0);
+  selectExp(0);
+  fitAll();
+  setMode('photo');
+  renderData();
+  requestAnimationFrame(t => { last = t; frame(t); });
+}
+window.addEventListener('resize', () => { fitAll(); render(); });
+init();
+})();
+
+</script>
+</body>
+</html>

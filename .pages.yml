@@ -1,0 +1,184 @@
+# Pages CMS (https://pagescms.org) editor for coppens.education.
+# Sign in at app.pagescms.org with GitHub and open this repository.
+# Every save is a commit to the branch you choose; saving to "main" republishes the site in about a minute.
+media:
+  input: public/media
+  output: /media
+
+content:
+  - name: announcements
+    label: Announcements & site settings
+    type: file
+    path: src/data/site.json
+    format: json
+    fields:
+      - name: announcements
+        label: Announcements
+        description: Short notes shown at the top of the Today page (and on a course page when a course is chosen).
+        type: object
+        list: true
+        fields:
+          - { name: text, label: Text, type: text, required: true }
+          - name: course
+            label: Show on
+            type: select
+            default: all
+            options:
+              values:
+                - { value: all, label: Every page }
+                - { value: apes, label: APES }
+                - { value: ib-bio, label: IB Biology }
+                - { value: env-sci, label: Environmental Science }
+                - { value: honors-bio, label: Honors Biology }
+          - { name: show, label: Show, type: boolean, default: true }
+          - { name: until, label: Hide after (optional), type: date, options: { format: "yyyy-MM-dd" } }
+      - { name: teacher, label: Name shown on the site, type: string }
+      - { name: email, label: Contact email, type: string }
+      - { name: school, label: School, type: string }
+      - { name: classroomUrl, label: Google Classroom link, type: string }
+      - { name: schoolYearStart, label: "School year starts in (year)", description: "Sheet dates without a year: Jul–Dec use this year, Jan–Jun the next.", type: number }
+      - { name: timeZone, label: Time zone, type: string }
+
+  - name: courses
+    label: Courses (on/off switch, sheet links, units)
+    type: file
+    path: src/data/courses.json
+    format: json
+    fields:
+      - name: courses
+        label: Courses
+        type: object
+        list: true
+        fields:
+          - { name: enabled, label: "Show this course on the site", type: boolean }
+          - { name: name, label: Full name, type: string }
+          - { name: short, label: Short name (nav and tags), type: string }
+          - { name: id, label: "Page address (don't change)", type: string }
+          - name: color
+            label: Course colour
+            type: select
+            options: { values: [river, moss, prairie, heather] }
+          - name: format
+            label: "Sheet layout (don't change unless the sheet's columns change)"
+            type: select
+            options: { values: [apes, ib, envsci] }
+          - { name: sheetCsvUrl, label: "Published CSV link for the Website tab", description: "From File → Share → Publish to web → Website tab → CSV.", type: string }
+          - { name: sheetName, label: Unit-plan sheet name (for reference), type: string }
+          - { name: codeLabel, label: Label for topic codes, type: string }
+          - { name: blurb, label: One-line description, type: text }
+          - { name: sections, label: "Sections (IB: Blue, Gold)", type: string, list: true }
+          - name: units
+            label: Units (in teaching order)
+            type: object
+            list: true
+            fields:
+              - { name: id, label: Unit ID (U1, U2…), type: string }
+              - { name: title, label: Title shown on the site, type: string }
+              - { name: match, label: "Matches sheet unit text containing", type: string, list: true }
+              - { name: trail, label: Show on the unit trail, type: boolean, default: true }
+          - name: toolLinks
+            label: Tool links shown on matching lessons
+            type: object
+            list: true
+            fields:
+              - { name: match, label: "Lesson title contains (regular expression)", type: string }
+              - { name: href, label: Link, type: string }
+              - { name: label, label: Link text, type: string }
+
+  - name: resources-apes
+    label: "Unit resources: APES"
+    type: file
+    path: src/data/resources/apes.json
+    format: json
+    fields: &resourceFields
+      - name: units
+        label: Units
+        type: object
+        list: true
+        fields:
+          - { name: unit, label: "Unit ID (course = course documents)", type: string }
+          - name: items
+            label: Resources
+            type: object
+            list: true
+            fields:
+              - { name: title, label: Title, type: string, required: true }
+              - { name: url, label: Link (Drive, Docs, Slides, YouTube…), type: string, required: true }
+              - name: kind
+                label: Type
+                type: select
+                options: { values: [Slides, Doc, PDF, Sheet, Form, Video, Link, File, Folder] }
+  - name: resources-ib-bio
+    label: "Unit resources: IB Biology"
+    type: file
+    path: src/data/resources/ib-bio.json
+    format: json
+    fields: *resourceFields
+  - name: resources-env-sci
+    label: "Unit resources: Environmental Science"
+    type: file
+    path: src/data/resources/env-sci.json
+    format: json
+    fields: *resourceFields
+  - name: resources-honors-bio
+    label: "Unit resources: Honors Biology"
+    type: file
+    path: src/data/resources/honors-bio.json
+    format: json
+    fields: *resourceFields
+
+  - name: tools
+    label: Tools & simulations
+    type: file
+    path: src/data/tools.json
+    format: json
+    fields:
+      - name: tools
+        label: Tools
+        type: object
+        list: true
+        fields:
+          - { name: title, label: Title, type: string }
+          - { name: slug, label: "Page address (lowercase-with-dashes)", type: string }
+          - { name: description, label: Description, type: text }
+          - { name: courses, label: "Courses (apes, ib-bio, env-sci, honors-bio)", type: string, list: true }
+          - { name: codes, label: Topic codes, type: string, list: true }
+          - { name: file, label: "HTML file (in public/tools/…)", type: string }
+          - { name: builtIn, label: "Built into the site (don't change)", type: boolean }
+          - { name: show, label: Show, type: boolean, default: true }
+
+  - name: links
+    label: Helpful links
+    type: file
+    path: src/data/links.json
+    format: json
+    fields:
+      - name: links
+        label: Links
+        type: object
+        list: true
+        fields:
+          - { name: title, label: Title, type: string }
+          - { name: description, label: Description, type: text }
+          - { name: url, label: Link, type: string }
+          - { name: courses, label: "Courses (all, apes, ib-bio, env-sci, honors-bio)", type: string, list: true }
+
+  - name: books
+    label: Digital textbooks
+    type: file
+    path: src/data/books.json
+    format: json
+    fields:
+      - name: books
+        label: Books
+        type: object
+        list: true
+        fields:
+          - { name: course, label: Course ID, type: string }
+          - { name: title, label: Title, type: string }
+          - { name: authors, label: Authors, type: string }
+          - { name: edition, label: Edition, type: string }
+          - { name: note, label: Note for students, type: text }
+          - { name: url, label: Google Drive link, type: string }
+          - { name: show, label: Show, type: boolean, default: true }
+          - { name: rarelyUsed, label: Rarely used, type: boolean }

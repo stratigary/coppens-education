@@ -1,0 +1,80 @@
+---
+import Base from '../layouts/Base.astro';
+import { courses, savedLessons, buildToday, resourcesFor, site, activeAnnouncements } from '../lib/data.js';
+import { calendarHtml, resourcesHtml, sectionSwitch, url } from '../lib/render.js';
+import booksData from '../data/books.json';
+import toolsData from '../data/tools.json';
+import linksData from '../data/links.json';
+
+export function getStaticPaths() {
+  return courses.map(c => ({ params: { course: c.id }, props: { c } }));
+}
+const { c } = Astro.props;
+const today = buildToday();
+const section = c.sections?.[0] || 'default';
+const cal = calendarHtml(c, savedLessons(c), today, section);
+const cur = cal.units.find(u => u.status === 'current');
+const resources = resourcesHtml(c, resourcesFor(c.id), cur?.id);
+const book = booksData.books.find(b => b.course === c.id && b.show !== false);
+const tools = toolsData.tools.filter(t => t.show !== false && t.courses.includes(c.id));
+const links = linksData.links.filter(l => l.courses.includes(c.id) && !/classroom\.google/.test(l.url));
+const notes = activeAnnouncements(c.id, today).filter(n => n.course === c.id);
+---
+<Base title={c.name} active={c.id} description={`${c.name} with ${site.teacher}: unit calendar, notes and resources.`}>
+  <div data-live data-page="course" data-course={c.id} class={`c-${c.color}`}>
+    <div class="band">
+      <canvas class="topo" aria-hidden="true" data-seed={c.id}></canvas>
+      <div class="wrap">
+        <div class="course-head">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+            <span class="tag">{c.short}</span>
+            {c.sections?.length && <span data-switch set:html={sectionSwitch(c, section, 'Your section (Blue or Gold day)')} />}
+          </div>
+          <h1>{c.name}</h1>
+          <p class="course-meta">
+            {book && <span>{book.authors ? `${book.authors}, ` : ''}<i>{book.title}</i></span>}
+            {c.sections?.length ? <span>Blue and Gold sections meet on alternate days. Pick yours and the site will remember it.</span> : <span>{c.blurb}</span>}
+          </p>
+          {notes.map(n => <div class="notice" role="note"><p>{n.text}</p></div>)}
+        </div>
+        <div data-trail set:html={cal.trail} />
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="cols">
+        <div>
+          <h2 class="sr-only">Unit calendar</h2>
+          <div data-calendar set:html={cal.body} />
+          <p class="data-status" data-status aria-live="polite">Showing the saved copy of the calendar.</p>
+        </div>
+        <aside class="kit" aria-label={`${c.short} resources`}>
+          <div class="kit-box">
+            <p class="eyebrow">Notes &amp; resources</p>
+            <h2>By unit</h2>
+            <div data-resources set:html={resources} />
+          </div>
+          {tools.length > 0 && (
+            <div class="kit-box">
+              <p class="eyebrow">Field kit</p>
+              <h2>Tools for this class</h2>
+              <ul class="kit-list">{tools.map(t => <li><a href={url(`/tools/${t.slug}/`)}>{t.title}</a><span class="k" aria-hidden="true">Tool</span></li>)}</ul>
+            </div>
+          )}
+          {links.length > 0 && (
+            <div class="kit-box">
+              <p class="eyebrow">Helpful links</p>
+              <ul class="kit-list">{links.map(l => <li><a href={l.url} target="_blank" rel="noopener">{l.title}<span class="sr-only"> (opens in a new tab)</span></a><span class="k" aria-hidden="true">Link</span></li>)}</ul>
+            </div>
+          )}
+          <div class="kit-box">
+            <p class="eyebrow">Need help?</p>
+            <h2>Ask {site.teacher}</h2>
+            <p style="margin:0 0 12px;font-size:15px" class="muted">Email <a href={`mailto:${site.email}`} style="color:var(--ink)">{site.email}</a>, or leave a private comment on the assignment in Classroom.</p>
+            <a class="btn" href={site.classroomUrl} target="_blank" rel="noopener">Open Classroom <span class="arrow" aria-hidden="true">↗</span><span class="sr-only">(opens in a new tab)</span></a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</Base>
+<script>import '../scripts/live.js';</script>

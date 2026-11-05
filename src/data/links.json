@@ -1,0 +1,12 @@
+{
+  "links": [
+    { "title": "Google Classroom", "description": "Assignments are posted and turned in here.", "url": "https://classroom.google.com", "courses": ["all"] },
+    { "title": "AP Classroom", "description": "Progress checks and AP Daily videos.", "url": "https://myap.collegeboard.org", "courses": ["apes"] },
+    { "title": "PhET Interactive Simulations", "description": "Greenhouse effect, natural selection and dozens more.", "url": "https://phet.colorado.edu", "courses": ["apes", "ib-bio", "env-sci"] },
+    { "title": "HHMI BioInteractive", "description": "Data points, case studies and short films.", "url": "https://www.biointeractive.org", "courses": ["apes", "ib-bio"] },
+    { "title": "Gapminder Tools", "description": "Hans Rosling's world population and health data.", "url": "https://www.gapminder.org/tools/", "courses": ["apes", "env-sci"] },
+    { "title": "Our World in Data", "description": "Charts on energy, population, emissions and land use.", "url": "https://ourworldindata.org", "courses": ["apes", "env-sci"] },
+    { "title": "Data Nuggets", "description": "Short datasets from real field research.", "url": "https://datanuggets.org", "courses": ["ib-bio", "apes"] },
+    { "title": "Virtual Calm Space", "description": "A quiet page to reset for a few minutes.", "url": "https://docs.google.com/presentation/d/1Jd60Srm7W_GO4JesAm8Y-VAKMkD_cRqrtTyvGWHt1KI/present", "courses": ["all"] }
+  ]
+}

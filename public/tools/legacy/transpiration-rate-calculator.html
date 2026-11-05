@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transpiration Rate Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FAFBF7; --panel: #FFFFFF; --ink: #1E2B22; --ink-soft: #55635A;
+    --leaf: #2E6B3A; --leaf-soft: #E4EFE0; --grid: #BCD6E0; --mark: #C2266D;
+    --amber: #D9981A; --warn-bg: #FCEFD6; --warn-ink: #8A5A00; --rule: #D9E2DA;
+    --font: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.45; }
+  button, input, select { font: inherit; color: inherit; }
+  button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #F26B1D; outline-offset: 2px; }
+
+  header {
+    padding: 22px 20px 18px; border-bottom: 2px solid var(--leaf); background-color: #F4F9FA;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px; background-position: -1px -1px;
+  }
+  header h1 { margin: 0; font-size: 1.85rem; line-height: 1.1; display: inline-block; background: var(--paper); padding: 2px 8px; color: var(--leaf); }
+  header p { margin: 8px 0 0; display: inline-block; background: var(--paper); padding: 2px 8px; max-width: 72ch; color: var(--ink-soft); }
+
+  main { padding: 18px 20px 28px; display: flex; flex-direction: column; gap: 16px; max-width: 1200px; }
+  .card { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; }
+  .card h2 { margin: 0 0 4px; font-size: 1.15rem; }
+  .card > p.sub { margin: 0 0 12px; color: var(--ink-soft); font-size: 0.93rem; max-width: 80ch; }
+
+  .settings { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; }
+  .settings label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; color: var(--ink-soft); }
+  select, input[type="text"], input[type="number"] { border: 1px solid #B9C4BC; border-radius: 4px; padding: 6px 8px; background: #fff; }
+  input.bad { border-color: var(--mark); background: #FDF0F5; }
+
+  .btn { border: 1px solid var(--leaf); background: var(--leaf); color: #fff; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: 700; }
+  .btn.ghost { background: transparent; color: var(--leaf); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .linkish { border: 0; background: none; color: var(--leaf); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.92rem; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 0.93rem; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; vertical-align: middle; }
+  th { color: var(--ink-soft); font-weight: 700; font-size: 0.88rem; }
+  td.num, th.num { text-align: right; }
+  #entry input { width: 100%; min-width: 80px; }
+  #entry td.lbl input { min-width: 110px; }
+  #entry td.lvl input { min-width: 120px; }
+  .timehead { display: flex; align-items: center; gap: 4px; }
+  .timehead input { width: 58px !important; min-width: 0 !important; padding: 4px 6px; }
+  #proc th { white-space: normal; min-width: 64px; vertical-align: bottom; }
+  .x { border: 0; background: none; color: var(--mark); cursor: pointer; font-size: 1.15rem; padding: 0 4px; }
+  .sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .rate { font-weight: 700; color: var(--leaf); }
+  .flag { color: var(--warn-ink); background: var(--warn-bg); border-radius: 4px; padding: 1px 6px; font-size: 0.84rem; white-space: normal; display: inline-block; max-width: 280px; }
+  .dim { color: var(--ink-soft); }
+
+  .two { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .two { grid-template-columns: 1fr; } }
+  svg text { font-family: var(--font); }
+  .key { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.88rem; margin-top: 8px; }
+
+  .calc { font-variant-numeric: tabular-nums; }
+  .calc ol { margin: 10px 0 0; padding-left: 22px; }
+  .calc li { margin-bottom: 10px; }
+  .calc .eq { display: block; margin-top: 2px; font-weight: 700; }
+  .calc .why { display: block; color: var(--ink-soft); font-size: 0.9rem; }
+  .callout { background: var(--leaf-soft); border-radius: 5px; padding: 10px 12px; font-size: 0.93rem; margin-top: 12px; max-width: 80ch; }
+  #copyMsg { color: var(--ink-soft); font-size: 0.9rem; }
+  #fallback { width: 100%; height: 110px; margin-top: 10px; display: none; font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Transpiration rate calculator</h1><br>
+  <p>Enter each tube's masses and leaf area. Every tube is divided by its own run time and leaf area, so a 15-minute run and a 45-minute run give comparable rates.</p>
+</header>
+
+<main>
+  <section class="card">
+    <h2>Settings</h2>
+    <div class="settings">
+      <label>Balance precision
+        <select id="unc">
+          <option value="0.01">± 0.01 g</option>
+          <option value="0.001">± 0.001 g</option>
+        </select>
+      </label>
+      <label>Report rate per
+        <select id="unit">
+          <option value="min">minute (mg cm⁻² min⁻¹)</option>
+          <option value="h">hour (mg cm⁻² h⁻¹)</option>
+        </select>
+      </label>
+      <label>Calculate rate from
+        <select id="method">
+          <option value="end">Total mass lost ÷ total time</option>
+          <option value="slope">Slope of the best-fit line</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Raw data (Table 1)</h2>
+    <p class="sub">Type the mass of each tube at each reading. Leave a box empty if your group didn't get that reading. Paste leaf area from the leaf area tool.</p>
+    <div class="table-scroll"><table id="entry"></table></div>
+    <div class="row">
+      <button class="btn ghost" id="addTube">Add tube</button>
+      <button class="btn ghost" id="addTime">Add reading time</button>
+      <label class="dim" style="font-size:0.92rem">Example data <select id="example"><option value="">Choose a group…</option><option value="fan">Group 1: Air movement (fan)</option><option value="coating">Group 2: Leaf coating (petroleum jelly)</option><option value="humidity">Group 3: Humidity (totes)</option><option value="light">Group 4: Light intensity</option><option value="salt">Group 5: NaCl in tube</option><option value="leaftype">Group 6: Sun vs. shade leaves</option></select></label>
+      <button class="linkish" id="clear">Clear all</button>
+      <span class="dim" id="saved" style="font-size:0.88rem"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Processed data (Table 5)</h2>
+    <p class="sub" id="procSub"></p>
+    <div class="table-scroll"><table id="proc"></table></div>
+    <div class="row">
+      <button class="btn" id="copyProc">Copy for Google Sheets</button>
+      <span id="copyMsg"></span>
+    </div>
+    <textarea id="fallback" readonly aria-label="Data to copy"></textarea>
+    <div class="callout" id="fairNote"></div>
+  </section>
+
+  <div class="two">
+    <section class="card">
+      <h2>Graph 1: Mass lost against time</h2>
+      <p class="sub">One line per tube. A straight line means the rate stayed steady.</p>
+      <div id="graph"></div>
+      <div class="key" id="key"></div>
+    </section>
+    <section class="card">
+      <h2>Group means by level</h2>
+      <p class="sub">These are your group's tubes only. Use the pooled class sheet for your t-tests.</p>
+      <div class="table-scroll"><table id="summary"></table></div>
+      <div class="row"><button class="btn ghost" id="copySum">Copy summary</button></div>
+    </section>
+  </div>
+
+  <section class="card calc">
+    <h2>Check your sample calculation</h2>
+    <p class="sub">Work it out by hand first, then compare.</p>
+    <label class="dim" style="font-size:0.9rem">Tube <select id="calcTube"></select></label>
+    <div id="calcOut"></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const KEY = "transpiration-calc-v1";
+  const COLORS = ["#2E6B3A", "#C2266D", "#2C6FB7", "#D9981A", "#6B4FA0", "#3A9A9A"];
+
+  let times = [0, 15, 30, 45];
+  let tubes = [];
+  const blankTube = () => ({ label: "", level: "", masses: times.map(() => ""), area: "" });
+  function defaults() { times = [0, 15, 30, 45]; tubes = Array.from({ length: 6 }, blankTube); }
+
+  // ---------- persistence ----------
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ times, tubes, unc: $("unc").value, unit: $("unit").value, method: $("method").value }));
+      $("saved").textContent = "Saved in this browser.";
+    } catch (e) { $("saved").textContent = ""; }
+  }
+  function load() {
+    try {
+      const d = JSON.parse(localStorage.getItem(KEY));
+      if (d && Array.isArray(d.times) && Array.isArray(d.tubes)) {
+        times = d.times; tubes = d.tubes;
+        if (d.unc) $("unc").value = d.unc;
+        if (d.unit) $("unit").value = d.unit;
+        if (d.method) $("method").value = d.method;
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  // ---------- helpers ----------
+  const num = (s) => { const v = parseFloat(String(s).replace(",", ".")); return isFinite(v) ? v : null; };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const sf = (v, n = 3) => {
+    if (v === null || !isFinite(v)) return "—";
+    const s = v.toPrecision(n);
+    return s.includes("e") ? Number(s).toString() : s;
+  };
+  const plain = (v) => Number(Number(v).toFixed(2)).toString();
+  const decimals = () => $("unc").value === "0.001" ? 3 : 2;
+  const unitLabel = () => $("unit").value === "h" ? "mg cm⁻² h⁻¹" : "mg cm⁻² min⁻¹";
+  const unitFactor = () => $("unit").value === "h" ? 60 : 1;
+  const levelKey = (t) => (t.level || "").trim().toLowerCase();
+  const tubeName = (t, i) => (t.label || "").trim() || "Tube " + (i + 1);
+
+  function levelColors() {
+    const map = new Map();
+    tubes.forEach((t) => { const k = levelKey(t); if (k && !map.has(k)) map.set(k, { name: t.level.trim(), color: COLORS[map.size % COLORS.length] }); });
+    return map;
+  }
+
+  // ---------- core calculation ----------
+  function analyze(t) {
+    const r = { ok: false, flags: [], losses: times.map(() => null) };
+    const m0 = num(t.masses[0]), A = num(t.area);
+    const pts = [];
+    times.forEach((tm, k) => { const m = num(t.masses[k]); if (m !== null && num(tm) !== null) pts.push({ k, t: num(tm), m }); });
+    if (m0 === null) { if (pts.length) r.flags.push("Needs a mass at " + times[0] + " min."); return r; }
+    pts.forEach((p) => { r.losses[p.k] = (m0 - p.m) * 1000; });
+    const later = pts.filter((p) => p.k > 0);
+    if (!later.length) { r.flags.push("Needs at least one reading after the start."); return r; }
+
+    const last = later[later.length - 1], first = later[0];
+    r.lastK = last.k; r.firstK = first.k;
+    r.tEnd = last.t - num(times[0]);
+    r.lossEnd = (m0 - last.m) * 1000;
+    r.m0 = m0; r.mEnd = last.m;
+    r.tFirst = first.t - num(times[0]);
+    r.lossFirst = (m0 - first.m) * 1000;
+
+    // best-fit slope of mass lost vs time, through all readings including (start, 0)
+    const xs = pts.map((p) => p.t - num(times[0])), ys = pts.map((p) => (m0 - p.m) * 1000);
+    const n = xs.length, mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+    let sxy = 0, sxx = 0;
+    for (let i = 0; i < n; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; }
+    r.slope = sxx > 0 ? sxy / sxx : null;
+    r.intercept = r.slope !== null ? my - r.slope * mx : null;
+    r.nPts = n;
+
+    for (let i = 1; i < pts.length; i++) if (pts[i].m > pts[i - 1].m) { r.flags.push("Mass went up between readings. Check for water on the tube or a different balance."); break; }
+    if (r.tEnd <= 0) { r.flags.push("Check the reading times; they must increase."); return r; }
+    if (A === null) { r.flags.push("Add the leaf area."); return r; }
+    if (A <= 0) { r.flags.push("Leaf area must be more than 0."); return r; }
+    if (r.lossEnd <= 0) r.flags.push("No mass was lost. Check the clay seal and the readings.");
+
+    r.A = A;
+    r.rateEnd = r.lossEnd / (A * r.tEnd);
+    r.rateSlope = r.slope !== null ? r.slope / A : null;
+    r.rateFirst = r.lossFirst / (A * r.tFirst);
+    r.rate = $("method").value === "slope" ? r.rateSlope : r.rateEnd;
+    r.ok = r.rate !== null;
+    const u = num($("unc").value);
+    r.uLoss = 2 * u * 1000;
+    r.pctUnc = r.lossEnd > 0 ? 100 * r.uLoss / r.lossEnd : null;
+    return r;
+  }
+
+  // ---------- entry table ----------
+  function buildEntry() {
+    const tb = $("entry");
+    let h = "<thead><tr><th>Tube label</th><th>Level</th>";
+    times.forEach((tm, k) => {
+      h += "<th><div class='timehead'><input type='number' data-time='" + k + "' value='" + esc(tm) + "' aria-label='Reading time " + (k + 1) + " in minutes'> min" +
+        (k > 1 && k === times.length - 1 ? "<button class='x' data-deltime title='Remove this reading time' aria-label='Remove last reading time'>×</button>" : "") + "</div><span style='font-weight:400'>mass (g)</span></th>";
+    });
+    h += "<th>Leaf area (cm²)</th><th></th></tr></thead><tbody>";
+    tubes.forEach((t, i) => {
+      h += "<tr data-i='" + i + "'><td class='lbl'><input type='text' data-f='label' value='" + esc(t.label) + "' placeholder='Tube " + (i + 1) + "'></td>" +
+        "<td class='lvl'><input type='text' data-f='level' value='" + esc(t.level) + "' placeholder='e.g. No fan' list='levels'></td>";
+      times.forEach((_, k) => { h += "<td><input type='text' inputmode='decimal' data-m='" + k + "' value='" + esc(t.masses[k] ?? "") + "'></td>"; });
+      h += "<td><input type='text' inputmode='decimal' data-f='area' value='" + esc(t.area) + "'></td>" +
+        "<td><button class='x' data-del aria-label='Remove tube'>×</button></td></tr>";
+    });
+    h += "</tbody>";
+    tb.innerHTML = h;
+    updateDatalist();
+  }
+
+  function updateDatalist() {
+    let dl = $("levels");
+    if (!dl) { dl = document.createElement("datalist"); dl.id = "levels"; document.body.appendChild(dl); }
+    dl.innerHTML = [...levelColors().values()].map((v) => "<option value='" + esc(v.name) + "'>").join("");
+  }
+
+  $("entry").addEventListener("input", (e) => {
+    const el = e.target, tr = el.closest("tr[data-i]");
+    if (el.dataset.time !== undefined) { times[+el.dataset.time] = el.value; }
+    else if (tr) {
+      const t = tubes[+tr.dataset.i];
+      if (el.dataset.f) t[el.dataset.f] = el.value;
+      if (el.dataset.m !== undefined) t.masses[+el.dataset.m] = el.value;
+      if (el.dataset.m !== undefined || el.dataset.f === "area") el.classList.toggle("bad", el.value.trim() !== "" && num(el.value) === null);
+    }
+    if (el.dataset.f === "level") updateDatalist();
+    refresh();
+  });
+  $("entry").addEventListener("click", (e) => {
+    if (e.target.matches("[data-del]")) {
+      const i = +e.target.closest("tr").dataset.i;
+      const t = tubes[i];
+      const hasData = t.label || t.area || t.masses.some((m) => String(m).trim());
+      if (hasData && !confirm("Remove " + tubeName(t, i) + " and its data?")) return;
+      tubes.splice(i, 1); if (!tubes.length) tubes.push(blankTube());
+      buildEntry(); refresh();
+    }
+    if (e.target.matches("[data-deltime]")) {
+      times.pop(); tubes.forEach((t) => t.masses.pop()); buildEntry(); refresh();
+    }
+  });
+  $("addTube").onclick = () => { tubes.push(blankTube()); buildEntry(); refresh(); };
+  $("addTime").onclick = () => {
+    const lastT = num(times[times.length - 1]) ?? 0;
+    times.push(lastT + 15); tubes.forEach((t) => t.masses.push("")); buildEntry(); refresh();
+  };
+  $("clear").onclick = () => { if (confirm("Clear every tube and start over?")) { defaults(); buildEntry(); refresh(); } };
+  const EXAMPLES = {"fan": [["G1-A", "No fan", ["38.452", "38.401", "38.352", "38.305"], "48.6"], ["G1-B", "No fan", ["37.918", "37.871", "", ""], "44.1"], ["G1-C", "Fan 1.0 m", ["39.110", "39.031", "38.955", "38.882"], "51.2"], ["G1-D", "Fan 1.0 m", ["38.774", "38.698", "38.627", "38.556"], "47.9"], ["G1-E", "Fan 0.5 m", ["40.002", "39.893", "39.790", "39.690"], "50.3"], ["G1-F", "Fan 0.5 m", ["39.540", "39.436", "", ""], "46.7"]], "coating": [["G2-A", "Uncoated", ["39.074", "39.023", "38.976", "38.929"], "50.5"], ["G2-B", "Uncoated", ["39.038", "38.985", "", ""], "52.1"], ["G2-C", "Upper surface coated", ["37.578", "37.531", "37.491", "37.449"], "51.2"], ["G2-D", "Upper surface coated", ["39.338", "39.301", "39.264", "39.231"], "43.1"], ["G2-E", "Lower surface coated", ["39.102", "39.091", "39.082", "39.074"], "53.3"], ["G2-F", "Lower surface coated", ["39.325", "39.314", "39.303", "39.294"], "52.8"]], "humidity": [["G3-A", "Open bench", ["37.432", "37.381", "37.335", "37.289"], "45.5"], ["G3-B", "Open bench", ["38.588", "38.546", "38.505", "38.465"], "41.8"], ["G3-C", "Tote, dry towels", ["37.914", "37.875", "37.843", "37.813"], "46.9"], ["G3-D", "Tote, dry towels", ["37.349", "37.312", "", ""], "49.1"], ["G3-E", "Tote, wet towels", ["39.812", "39.789", "39.777", "39.769"], "43.0"], ["G3-F", "Tote, wet towels", ["37.401", "37.377", "37.364", "37.355"], "49.9"]], "light": [["G4-A", "Room light", ["38.111", "38.055", "38.002", "37.949"], "50.1"], ["G4-B", "Room light", ["37.575", "37.534", "37.494", "37.456"], "41.3"], ["G4-C", "Dark cabinet", ["39.989", "39.959", "39.943", "39.932"], "42.8"], ["G4-D", "Dark cabinet", ["39.965", "39.931", "39.911", "39.897"], "48.7"], ["G4-E", "LED lamp 20 cm", ["37.683", "37.619", "", ""], "46.0"], ["G4-F", "LED lamp 20 cm", ["38.041", "37.987", "37.919", "37.847"], "44.3"]], "salt": [["G5-A", "Plain water", ["39.410", "39.366", "39.322", "39.280"], "46.2"], ["G5-B", "Plain water", ["39.696", "39.636", "39.577", "39.524"], "50.5"], ["G5-C", "0.2 mol/dm³ NaCl", ["39.230", "39.193", "", ""], "46.5"], ["G5-D", "0.2 mol/dm³ NaCl", ["37.368", "37.331", "37.304", "37.283"], "43.9"], ["G5-E", "0.4 mol/dm³ NaCl", ["39.998", "39.975", "39.963", "39.955"], "42.4"], ["G5-F", "0.4 mol/dm³ NaCl", ["37.593", "37.569", "37.555", "37.546"], "44.5"]], "leaftype": [["G6-A", "Sun leaves", ["37.527", "37.467", "37.410", "37.354"], "47.5"], ["G6-B", "Sun leaves", ["40.243", "40.174", "40.109", "40.046"], "52.6"], ["G6-C", "Sun leaves", ["40.331", "40.263", "40.196", "40.136"], "48.6"], ["G6-D", "Shade leaves", ["39.670", "39.619", "39.574", "39.529"], "64.2"], ["G6-E", "Shade leaves", ["40.352", "40.296", "", ""], "65.3"], ["G6-F", "Shade leaves", ["38.856", "38.799", "38.744", "38.690"], "73.1"]]};
+  $("example").onchange = (e) => {
+    const key = e.target.value; if (!key) return;
+    if (tubes.some((t) => t.label || t.area || t.masses.some((m) => String(m).trim())) && !confirm("Replace your data with example data?")) { e.target.value = ""; return; }
+    times = [0, 15, 30, 45];
+    tubes = EXAMPLES[key].map(([label, level, masses, area]) => ({ label, level, masses: masses.slice(), area }));
+    $("unc").value = "0.001";
+    e.target.value = "";
+    buildEntry(); refresh();
+  };
+  ["unc", "unit", "method"].forEach((id) => $(id).onchange = refresh);
+
+  // ---------- outputs ----------
+  let results = [];
+  function refresh() {
+    results = tubes.map(analyze);
+    renderProc(); renderGraph(); renderSummary(); renderCalcOptions(); renderCalc();
+    save();
+  }
+
+  function renderProc() {
+    const f = unitFactor(), U = unitLabel(), colors = levelColors();
+    const m = $("method").value;
+    const t1 = num(times[1]);
+    $("procSub").textContent = m === "slope"
+      ? "Rate = slope of mass lost vs. time ÷ leaf area. Each tube uses all of its own readings."
+      : "Rate = total mass lost ÷ (leaf area × time). Each tube uses its own last reading, so the time is different for 15- and 45-minute runs.";
+    let h = "<thead><tr><th>Tube</th><th>Level</th>";
+    times.slice(1).forEach((tm) => { h += "<th class='num'>Mass lost at " + esc(tm) + " min (mg)</th>"; });
+    h += "<th class='num'>Leaf area (cm²)</th><th class='num'>Time used (min)</th><th class='num'>Rate (" + U + ")</th><th class='num'>Rate, first " + esc(t1 ?? "") + " min</th><th>Check</th></tr></thead><tbody>";
+    let any = false;
+    tubes.forEach((t, i) => {
+      const r = results[i];
+      const blank = !t.label && !t.area && !t.masses.some((x) => String(x).trim());
+      if (blank) return;
+      any = true;
+      const c = colors.get(levelKey(t));
+      h += "<tr><td>" + esc(tubeName(t, i)) + "</td><td>" + (c ? "<span class='sw' style='background:" + c.color + "'></span>" : "") + esc(t.level || "—") + "</td>";
+      times.slice(1).forEach((_, j) => { const L = r.losses[j + 1]; h += "<td class='num'>" + (L === null ? "<span class='dim'>—</span>" : L.toFixed(0)) + "</td>"; });
+      h += "<td class='num'>" + (num(t.area) !== null ? esc(t.area) : "—") + "</td>" +
+        "<td class='num'>" + (r.tEnd ? plain(r.tEnd) : "—") + "</td>" +
+        "<td class='num rate'>" + (r.ok ? sf(r.rate * f) : "—") + "</td>" +
+        "<td class='num'>" + (r.rateFirst !== undefined && r.A ? sf(r.rateFirst * f) : "—") + "</td>" +
+        "<td>" + (r.flags.length ? r.flags.map((x) => "<span class='flag'>" + esc(x) + "</span>").join(" ") : (r.ok ? "<span class='dim'>OK</span>" : "")) + "</td></tr>";
+    });
+    if (!any) h += "<tr><td colspan='" + (times.length + 6) + "' class='dim'>Enter data above to see results.</td></tr>";
+    $("proc").innerHTML = h + "</tbody>";
+
+    const ends = results.filter((r) => r.ok).map((r) => r.tEnd);
+    const mixed = ends.length && Math.min(...ends) !== Math.max(...ends);
+    $("fairNote").innerHTML = mixed
+      ? "<b>Your tubes ran for different lengths of time.</b> Dividing by time makes the rates comparable, but rates are often higher early on, before the shoot settles. The <i>first " + esc(t1) + " min</i> column puts every tube on the same interval. Compare the two columns, and mention any difference in your evaluation."
+      : "Every tube is divided by its own leaf area and run time, so tubes with different-sized shoots or different run lengths can be compared fairly.";
+  }
+
+  function renderSummary() {
+    const f = unitFactor(), colors = levelColors(), groups = new Map();
+    tubes.forEach((t, i) => {
+      const r = results[i], k = levelKey(t);
+      if (!r.ok || !k) return;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(r.rate * f);
+    });
+    let h = "<thead><tr><th>Level</th><th class='num'>n</th><th class='num'>Mean rate (" + unitLabel() + ")</th><th class='num'>SD</th></tr></thead><tbody>";
+    if (!groups.size) h += "<tr><td colspan='4' class='dim'>Give each tube a level to group them.</td></tr>";
+    groups.forEach((vals, k) => {
+      const n = vals.length, mean = vals.reduce((a, b) => a + b, 0) / n;
+      const sd = n > 1 ? Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1)) : null;
+      const c = colors.get(k);
+      h += "<tr><td><span class='sw' style='background:" + c.color + "'></span>" + esc(c.name) + "</td><td class='num'>" + n + "</td><td class='num rate'>" + sf(mean) + "</td><td class='num'>" + (sd === null ? "<span class='dim'>needs 2+</span>" : sf(sd, 2)) + "</td></tr>";
+    });
+    $("summary").innerHTML = h + "</tbody>";
+    $("summary").dataset.rows = JSON.stringify([...groups].map(([k, v]) => [colors.get(k).name, v]));
+  }
+
+  function niceMax(v) {
+    if (v <= 0) return 10;
+    const p = Math.pow(10, Math.floor(Math.log10(v))), n = v / p;
+    return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p;
+  }
+
+  function renderGraph() {
+    const colors = levelColors();
+    const series = [];
+    tubes.forEach((t, i) => {
+      const r = results[i];
+      const pts = [];
+      times.forEach((tm, k) => { if (r.losses[k] !== null && num(tm) !== null) pts.push([num(tm) - num(times[0]), r.losses[k]]); });
+      if (pts.length >= 2) series.push({ name: tubeName(t, i), level: t.level, color: (colors.get(levelKey(t)) || { color: "#7A857D" }).color, pts });
+    });
+    if (!series.length) { $("graph").innerHTML = "<p class='dim'>The graph appears once a tube has two readings.</p>"; $("key").innerHTML = ""; return; }
+    const Wd = 620, Ht = 360, L = 62, R = 16, T = 14, B = 52;
+    const xmax = niceMax(Math.max(...series.flatMap((s) => s.pts.map((p) => p[0]))));
+    const ymaxRaw = Math.max(...series.flatMap((s) => s.pts.map((p) => p[1])));
+    const ymin = Math.min(0, ...series.flatMap((s) => s.pts.map((p) => p[1])));
+    const ymax = niceMax(ymaxRaw);
+    const X = (x) => L + (x / xmax) * (Wd - L - R);
+    const Y = (y) => T + (1 - (y - ymin) / (ymax - ymin)) * (Ht - T - B);
+    let s = "<svg viewBox='0 0 " + Wd + " " + Ht + "' width='100%' role='img' aria-label='Mass lost against time for each tube'>";
+    for (let i = 0; i <= 5; i++) {
+      const yv = ymin + (ymax - ymin) * i / 5, y = Y(yv);
+      s += "<line x1='" + L + "' x2='" + (Wd - R) + "' y1='" + y + "' y2='" + y + "' stroke='#E3E9E4'/>" +
+        "<text x='" + (L - 8) + "' y='" + (y + 4) + "' text-anchor='end' font-size='12' fill='#55635A'>" + plain(yv) + "</text>";
+    }
+    const xsteps = xmax <= 60 ? xmax / 15 : 6;
+    for (let i = 0; i <= xsteps; i++) {
+      const xv = xmax * i / xsteps, x = X(xv);
+      s += "<line x1='" + x + "' x2='" + x + "' y1='" + T + "' y2='" + (Ht - B) + "' stroke='#EEF2EE'/>" +
+        "<text x='" + x + "' y='" + (Ht - B + 18) + "' text-anchor='middle' font-size='12' fill='#55635A'>" + plain(xv) + "</text>";
+    }
+    s += "<line x1='" + L + "' x2='" + (Wd - R) + "' y1='" + Y(0) + "' y2='" + Y(0) + "' stroke='#1E2B22'/>" +
+      "<line x1='" + L + "' x2='" + L + "' y1='" + T + "' y2='" + (Ht - B) + "' stroke='#1E2B22'/>" +
+      "<text x='" + ((L + Wd - R) / 2) + "' y='" + (Ht - 10) + "' text-anchor='middle' font-size='13' fill='#1E2B22'>Time (min)</text>" +
+      "<text transform='translate(16 " + ((T + Ht - B) / 2) + ") rotate(-90)' text-anchor='middle' font-size='13' fill='#1E2B22'>Mass lost (mg)</text>";
+    const seen = {};
+    series.forEach((se) => {
+      const k = (se.level || "").toLowerCase(); seen[k] = (seen[k] || 0) + 1;
+      const dash = seen[k] % 2 === 0 ? " stroke-dasharray='6 4'" : "";
+      se.dash = !!dash;
+      s += "<polyline fill='none' stroke='" + se.color + "' stroke-width='2.5'" + dash + " points='" + se.pts.map((p) => X(p[0]) + "," + Y(p[1])).join(" ") + "'/>";
+      se.pts.forEach((p) => { s += "<circle cx='" + X(p[0]) + "' cy='" + Y(p[1]) + "' r='4' fill='#fff' stroke='" + se.color + "' stroke-width='2'><title>" + esc(se.name) + ": " + p[1].toFixed(0) + " mg at " + p[0] + " min</title></circle>"; });
+    });
+    $("graph").innerHTML = s + "</svg>";
+    $("key").innerHTML = series.map((se) =>
+      "<span><svg width='26' height='10' aria-hidden='true'><line x1='0' x2='26' y1='5' y2='5' stroke='" + se.color + "' stroke-width='2.5'" + (se.dash ? " stroke-dasharray='6 4'" : "") + "/></svg> " +
+      esc(se.name) + (se.level ? " <span class='dim'>(" + esc(se.level) + ")</span>" : "") + "</span>").join("");
+  }
+
+  function renderCalcOptions() {
+    const sel = $("calcTube"), prev = sel.value;
+    const opts = tubes.map((t, i) => results[i].ok ? "<option value='" + i + "'>" + esc(tubeName(t, i)) + "</option>" : "").join("");
+    sel.innerHTML = opts || "<option value=''>No complete tubes yet</option>";
+    if ([...sel.options].some((o) => o.value === prev)) sel.value = prev;
+  }
+  $("calcTube").onchange = renderCalc;
+
+  function renderCalc() {
+    const i = $("calcTube").value;
+    if (i === "") { $("calcOut").innerHTML = "<p class='dim'>Complete one tube (start mass, a later mass, and leaf area) to see the worked calculation.</p>"; return; }
+    const t = tubes[+i], r = results[+i], d = decimals();
+    const perH = $("unit").value === "h", U = unitLabel();
+    const tStart = num(times[0]), tLast = num(times[r.lastK]);
+    const lossG = r.m0 - r.mEnd;
+    const tUnit = perH ? (r.tEnd / 60) : r.tEnd;
+    let h = "<ol>";
+    if ($("method").value === "end") {
+      h += "<li>Mass lost<span class='eq'>m₀ − m<sub>" + esc(times[r.lastK]) + "</sub> = " + esc(t.masses[0]) + " g − " + esc(t.masses[r.lastK]) + " g = " + lossG.toFixed(d) + " g</span></li>";
+      h += "<li>Convert to milligrams<span class='eq'>" + lossG.toFixed(d) + " g × 1000 = " + (lossG * 1000).toFixed(0) + " mg</span></li>";
+      h += "<li>Time for this tube<span class='eq'>" + tLast + " min − " + tStart + " min = " + plain(r.tEnd) + " min" + (perH ? " = " + plain(tUnit) + " h" : "") + "</span>" +
+        (r.lastK < times.length - 1 ? "<span class='why'>This tube's last reading was at " + esc(times[r.lastK]) + " min, so that's the time to use.</span>" : "") + "</li>";
+      h += "<li>Divide by leaf area and time<span class='eq'>" + (lossG * 1000).toFixed(0) + " mg ÷ (" + esc(t.area) + " cm² × " + plain(tUnit) + (perH ? " h" : " min") + ") = " + sf(r.rateEnd * unitFactor()) + " " + U + "</span></li>";
+    } else {
+      h += "<li>Mass lost at each reading<span class='eq'>" + times.map((tm, k) => r.losses[k] === null ? null : tm + " min: " + r.losses[k].toFixed(0) + " mg").filter(Boolean).join(", ") + "</span></li>";
+      h += "<li>Slope of the best-fit line of mass lost vs. time<span class='eq'>slope = " + sf(r.slope) + " mg min⁻¹" + (perH ? " = " + sf(r.slope * 60) + " mg h⁻¹" : "") + "</span>" +
+        (r.nPts === 2 ? "<span class='why'>With only two readings, the slope is just the total mass lost ÷ time.</span>" : "") + "</li>";
+      h += "<li>Divide by leaf area<span class='eq'>" + sf(r.slope * unitFactor()) + (perH ? " mg h⁻¹" : " mg min⁻¹") + " ÷ " + esc(t.area) + " cm² = " + sf(r.rateSlope * unitFactor()) + " " + U + "</span></li>";
+    }
+    if (r.pctUnc !== null) {
+      const u = $("unc").value;
+      h += "<li>Uncertainty in mass lost<span class='eq'>± " + u + " g on each of two masses → ± " + (2 * u).toFixed(d) + " g = ± " + r.uLoss.toFixed(0) + " mg</span>" +
+        "<span class='why'>That's " + sf(r.pctUnc, 2) + "% of the " + r.lossEnd.toFixed(0) + " mg lost. Shorter runs lose less mass, so the same balance gives a bigger percentage uncertainty.</span></li>";
+    }
+    $("calcOut").innerHTML = h + "</ol>";
+  }
+
+  // ---------- copy ----------
+  function copyText(txt) {
+    const msg = $("copyMsg");
+    const fallback = () => {
+      const ta = $("fallback"); ta.value = txt; ta.style.display = "block"; ta.focus(); ta.select();
+      let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+      msg.textContent = ok ? "Copied. Paste into Google Sheets." : "Select the text below and copy it (Ctrl+C or ⌘C).";
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => { msg.textContent = "Copied. Paste into Google Sheets."; $("fallback").style.display = "none"; }, fallback);
+    else fallback();
+  }
+  $("copyProc").onclick = () => {
+    const f = unitFactor(), U = unitLabel().replace("⁻²", "^-2").replace("⁻¹", "^-1");
+    const head = ["Tube", "Level", ...times.slice(1).map((tm) => "Mass lost at " + tm + " min (mg)"), "Leaf area (cm^2)", "Time used (min)", "Rate (" + U + ")", "Rate first " + times[1] + " min (" + U + ")"];
+    const lines = [head.join("\t")];
+    tubes.forEach((t, i) => {
+      const r = results[i]; if (!r.ok) return;
+      lines.push([tubeName(t, i), t.level, ...times.slice(1).map((_, j) => r.losses[j + 1] === null ? "" : r.losses[j + 1].toFixed(0)), t.area, plain(r.tEnd), sf(r.rate * f), sf(r.rateFirst * f)].join("\t"));
+    });
+    if (lines.length === 1) { $("copyMsg").textContent = "No complete tubes to copy yet."; return; }
+    copyText(lines.join("\n"));
+  };
+  $("copySum").onclick = () => {
+    const rows = JSON.parse($("summary").dataset.rows || "[]");
+    if (!rows.length) { $("copyMsg").textContent = "No level summary to copy yet."; return; }
+    const lines = ["Level\tn\tMean rate\tSD\tIndividual rates"];
+    rows.forEach(([name, v]) => {
+      const n = v.length, mean = v.reduce((a, b) => a + b, 0) / n;
+      const sd = n > 1 ? Math.sqrt(v.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1)) : "";
+      lines.push([name, n, sf(mean), sd === "" ? "" : sf(sd, 2), v.map((x) => sf(x)).join(", ")].join("\t"));
+    });
+    copyText(lines.join("\n"));
+  };
+
+  // ---------- start ----------
+  if (!load()) defaults();
+  tubes.forEach((t) => { while (t.masses.length < times.length) t.masses.push(""); t.masses.length = times.length; });
+  buildEntry(); refresh();
+})();
+</script>
+</body>
+</html>

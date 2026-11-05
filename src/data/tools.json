@@ -1,0 +1,19 @@
+{
+  "tools": [
+    { "slug": "carrying-capacity", "title": "Carrying capacity explorer", "description": "Change r, K and N₀ and compare logistic growth with exponential growth.", "courses": ["apes", "env-sci", "ib-bio"], "codes": ["APES 3.4–3.5", "C4.1.7"], "builtIn": true, "file": "", "show": true },
+    { "slug": "simpsons-index", "title": "Simpson's Index calculator", "description": "Biodiversity from species counts, with the working shown for an IA.", "courses": ["ib-bio"], "codes": ["C4.1"], "builtIn": false, "file": "/tools/legacy/simpsons-index.html", "show": true },
+    { "slug": "simpsons-index-apes", "title": "Simpson's Diversity Index (APES)", "description": "The APES version of the diversity calculator.", "courses": ["apes"], "codes": ["APES 2.1"], "builtIn": false, "file": "/tools/legacy/simpsons-index-apes.html", "show": true },
+    { "slug": "lincoln-index", "title": "Lincoln Index", "description": "Estimate population size with mark and recapture.", "courses": ["ib-bio"], "codes": ["C4.1.4"], "builtIn": false, "file": "/tools/legacy/lincoln-index.html", "show": true },
+    { "slug": "chi-square-test", "title": "Chi-square test", "description": "Test for an association between two species or traits.", "courses": ["ib-bio"], "codes": ["C4.1.3"], "builtIn": false, "file": "/tools/legacy/chi-square-test.html", "show": true },
+    { "slug": "hardy-weinberg", "title": "Hardy–Weinberg", "description": "Allele and genotype frequencies.", "courses": ["ib-bio"], "codes": [], "builtIn": false, "file": "/tools/legacy/hardy-weinberg.html", "show": true },
+    { "slug": "students-t-test", "title": "Student's t-test", "description": "Compare the means of two samples.", "courses": ["ib-bio"], "codes": [], "builtIn": false, "file": "/tools/legacy/students-t-test.html", "show": true },
+    { "slug": "surface-area-to-volume", "title": "Surface area to volume", "description": "Why cells stay small.", "courses": ["ib-bio"], "codes": ["B2.3.6"], "builtIn": false, "file": "/tools/legacy/surface-area-to-volume.html", "show": true },
+    { "slug": "punnett-squares", "title": "Punnett squares", "description": "Build crosses and read off the ratios.", "courses": ["ib-bio", "honors-bio"], "codes": [], "builtIn": false, "file": "/tools/legacy/punnett-squares.html", "show": true },
+    { "slug": "population-growth", "title": "Population growth", "description": "The original population growth model from the old site.", "courses": ["ib-bio"], "codes": ["C4.1.7"], "builtIn": false, "file": "/tools/legacy/population-growth.html", "show": true },
+    { "slug": "enzyme-simulation", "title": "Enzyme simulation", "description": "Temperature, pH and substrate concentration.", "courses": ["ib-bio"], "codes": ["C1.1"], "builtIn": false, "file": "/tools/legacy/enzyme-simulation.html", "show": true },
+    { "slug": "leaf-surface-area-calculator", "title": "Leaf surface area calculator", "description": "Measure leaf area for transpiration labs.", "courses": ["ib-bio"], "codes": ["B3.1.9"], "builtIn": false, "file": "/tools/legacy/leaf-surface-area-calculator.html", "show": true },
+    { "slug": "transpiration-rate-calculator", "title": "Transpiration rate calculator", "description": "Mass-loss and potometer data to rate per area.", "courses": ["ib-bio"], "codes": ["B3.1.9"], "builtIn": false, "file": "/tools/legacy/transpiration-rate-calculator.html", "show": true },
+    { "slug": "plant-tropisms", "title": "Plant tropisms", "description": "Virtual lab on auxin and phototropism.", "courses": ["ib-bio"], "codes": ["C3.1.17"], "builtIn": false, "file": "/tools/legacy/plant-tropisms.html", "show": true },
+    { "slug": "beads-in-a-bag", "title": "Beads in a Bag", "description": "Simulation of extracting a non-renewable resource.", "courses": ["env-sci"], "codes": [], "builtIn": false, "file": "/tools/legacy/beads-in-a-bag.html", "show": true }
+  ]
+}
