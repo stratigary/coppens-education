@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { courses, savedLessons, buildToday, activeAnnouncements, courseById } from '../lib/data.js';
-import { todayCard, fmt } from '../lib/render.js';
+import { todayCard, fmt, url } from '../lib/render.js';
 import toolsData from '../data/tools.json';
 const today = buildToday();
 const cards = courses.map(c => todayCard(c, savedLessons(c), today, c.sections?.[0] || 'default')).join('');
@@ -27,12 +27,12 @@ const featured = toolsData.tools.filter(t => t.show !== false).slice(0, 4);
     <div class="wrap">
       <div class="sec-head">
         <div><p class="eyebrow">Field kit</p><h2 id="kit-h">Tools &amp; simulations</h2></div>
-        <p class="sec-note">Calculators and models we use in class. <a href="/tools/">See all tools and links</a>.</p>
+        <p class="sec-note">Calculators and models we use in class. <a href={url('/tools/')}>See all tools and links</a>.</p>
       </div>
       <div class="tool-grid">
         {featured.map(t => (
           <article class="tool-card">
-            <h3><a href={`/tools/${t.slug}/`}>{t.title}</a></h3>
+            <h3><a href={url(`/tools/${t.slug}/`)}>{t.title}</a></h3>
             <p>{t.description}</p>
             <div class="tags">{t.courses.map(id => courseById(id)).filter(c => c && c.enabled).map(c => <span class={`tag sm c-${c.color}`}>{c.short}</span>)}</div>
           </article>

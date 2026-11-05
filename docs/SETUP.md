@@ -4,7 +4,7 @@ Five one-time steps to take the site live. Each step says where to click.
 
 1. [Add a "Website" tab to each unit-plan sheet](#1-add-a-website-tab-to-each-unit-plan-sheet)
 2. [Publish only that tab as CSV and paste the link into the editor](#2-publish-the-website-tab-as-csv)
-3. [Turn on GitHub Pages](#3-turn-on-github-pages)
+3. [Turn on GitHub Pages, preview first](#3-turn-on-github-pages-preview-first)
 4. [Point coppens.education at GitHub Pages in Squarespace](#4-point-the-domain-at-github-pages-squarespace)
 5. [Connect Pages CMS](#5-edit-the-site-with-pages-cms)
 
@@ -47,17 +47,30 @@ Google takes up to about 5 minutes to update a published CSV after you edit the 
 
 **How the live calendar and saved copy work together:** the site reads the published CSV directly in each visitor's browser. If Google is slow or unreachable, it uses the copy saved in this repository (`public/data/fallback/*.csv`). That copy is refreshed every night by the *Refresh saved calendars* GitHub Action. A line under each calendar tells students which one they are seeing. The nightly job **refuses to save** a tab whose headers contain JiTT, "If we lose a day", "teacher" or similar, so a mistake in the Website tab can't put teacher-only columns into the repository.
 
-## 3. Turn on GitHub Pages
+## 3. Turn on GitHub Pages (preview first)
 
-In the repository on GitHub:
+The site publishes in two stages, so you can check it as long as you like before anyone sees it at coppens.education.
 
-1. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
-2. **Settings → Pages → Custom domain:** `coppens.education` → Save. When the check passes, turn on **Enforce HTTPS**. The certificate can take up to an hour.
-3. **Settings → Actions → General → Workflow permissions:** choose **Read and write permissions**. The nightly calendar refresh needs this to commit.
+**Stage 1: private preview** at `https://stratigary.github.io/coppens-education/`
 
-Every push to `main` builds and publishes the site. It also rebuilds every night at about 5 am Eastern.
+1. **Settings → Pages → Build and deployment → Source: GitHub Actions.** Leave **Custom domain** empty for now.
+2. **Settings → Environments → github-pages → Deployment branches and tags → Add deployment branch rule → `site-v1`.** This lets the review branch publish the preview before you merge. Skip it if you'd rather merge first: merging also only updates the preview.
+3. **Actions → Deploy site → Run workflow**, pick the branch (`site-v1` or `main`), then Run. After about a minute the preview is up.
+4. **Settings → Actions → General → Workflow permissions: Read and write permissions.** The nightly calendar refresh needs this to commit.
 
-> GitHub Pages on a **private** repository requires a paid GitHub plan. On a free account the repository must be public. The repository holds no student data. It contains the site code, links to your Drive files (which still require a school login), and the saved student-facing calendar.
+While in preview mode, every page tells search engines not to index it. The address isn't secret, though, so share it only with people you want reviewing. Each push to `site-v1` or `main` updates the preview, and your Pages CMS edits show there too.
+
+**Stage 2: go live** when you're happy:
+
+1. Merge the pull request into `main` (if you haven't already).
+2. Do [step 4](#4-point-the-domain-at-github-pages-squarespace) (Squarespace DNS).
+3. **Settings → Pages → Custom domain:** `coppens.education` → Save. When the DNS check passes, turn on **Enforce HTTPS**. The certificate can take up to an hour.
+4. **Settings → Secrets and variables → Actions → Variables → New repository variable:** name `USE_CUSTOM_DOMAIN`, value `true`.
+5. **Actions → Deploy site → Run workflow** on `main`.
+
+To go back to preview mode, delete the variable and the custom domain, then re-run the workflow.
+
+> GitHub Pages on a **private** repository requires a paid GitHub plan; this one is public. The repository holds no student data. It contains the site code, links to your Drive files (which still need a school login), and the saved student-facing calendar.
 
 ## 4. Point the domain at GitHub Pages (Squarespace)
 

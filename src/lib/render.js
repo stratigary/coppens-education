@@ -12,7 +12,10 @@ export const fmt = {
   long: iso => f(iso, { weekday: 'long', month: 'long', day: 'numeric' }),
   full: iso => f(iso, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
 };
-export const base = (p = '') => p; // hook in case the site moves under a sub-path
+// Prefix site-internal links with the base path, so the same build works at coppens.education/
+// and at a preview address like stratigary.github.io/coppens-education/.
+const BASE = ((typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.BASE_URL) || '/').replace(/\/$/, '');
+export const url = (p = '/') => (/^\/(?!\/)/.test(p) ? BASE + p : p);
 
 const pill = fl => `<span class="pill ${esc(fl.type)}">${esc(fl.type === 'due' ? fl.label : fl.label)}</span>`;
 const codes = (c, l) => l.codes?.length ? `<ul class="codes" aria-label="${esc(c.codeLabel)}">${l.codes.map(x => `<li class="code">${esc(x)}</li>`).join('')}</ul>` : '';
@@ -36,8 +39,8 @@ export function todayCard(c, lessons, today, section) {
   const head = `<div class="card-top"><span class="tag">${esc(c.short)}</span>${sectionSwitch(c, section)}</div>`;
   if (!main) {
     return `<article class="card c-${esc(c.color)}" data-course="${esc(c.id)}">${head}${status}
-      <h3><a href="/${esc(c.id)}/">${esc(c.name)}</a></h3><p class="muted">No upcoming classes on the calendar yet.</p>
-      <div class="card-foot"><a class="more" href="/${esc(c.id)}/">Course page <span aria-hidden="true">→</span></a></div></article>`;
+      <h3><a href="${esc(url(`/${c.id}/`))}">${esc(c.name)}</a></h3><p class="muted">No upcoming classes on the calendar yet.</p>
+      <div class="card-foot"><a class="more" href="${esc(url(`/${c.id}/`))}">Course page <span aria-hidden="true">→</span></a></div></article>`;
   }
   const d = dateOf(main, sec), note = noteOf(main, sec);
   const when = s.today ? `Today${main.session ? ' · ' + main.session : ''}` : `Next class · ${fmt.short(d)}`;
@@ -49,13 +52,13 @@ export function todayCard(c, lessons, today, section) {
     ${head}${status}
     <div>
       <p class="when">${esc(when)}</p>
-      <h3><a href="/${esc(c.id)}/#d-${esc(d)}">${esc(main.title)}</a></h3>
+      <h3><a href="${url(`/${c.id}/`)}#d-${esc(d)}">${esc(main.title)}</a></h3>
       <p class="unitline">${esc(main.unitTitle)}</p>
     </div>
     ${note ? `<p class="flag">${shortOf(main, sec) ? '<span class="sb">Short block</span> ' : ''}${esc(note.replace(/ · short block$/i, '').replace(/^short block$/i, ''))}</p>` : ''}
     ${flags || main.codes?.length ? `<div class="chips">${flags}${codes(c, main)}</div>` : ''}
     ${fields(main, 4)}
-    <div class="card-foot">${foot}<a class="more" href="/${esc(c.id)}/">Full unit calendar <span aria-hidden="true">→</span></a></div>
+    <div class="card-foot">${foot}<a class="more" href="${esc(url(`/${c.id}/`))}">Full unit calendar <span aria-hidden="true">→</span></a></div>
   </article>`;
 }
 
@@ -71,7 +74,7 @@ function lessonHtml(c, l, today, sec) {
       ${note || short ? `<p class="flag">${short ? '<span class="sb">Short block</span> ' : ''}${esc(note.replace(/ · short block$/i, '').replace(/^short block$/i, ''))}</p>` : ''}
       ${codes(c, l)}
       ${fields(l)}
-      ${c.toolLinks?.filter(t => t.match && new RegExp(t.match, 'i').test(l.title)).map(t => `<a class="more" href="${esc(t.href)}">${esc(t.label)} <span aria-hidden="true">→</span></a>`).join('') || ''}
+      ${c.toolLinks?.filter(t => t.match && new RegExp(t.match, 'i').test(l.title)).map(t => `<a class="more" href="${esc(url(t.href))}">${esc(t.label)} <span aria-hidden="true">→</span></a>`).join('') || ''}
     </div></li>`;
 }
 function unitHtml(c, u, today, sec, open) {

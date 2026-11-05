@@ -2,7 +2,7 @@
 // 1) re-renders for the student's actual "today" and saved IB section,
 // 2) tries the live published-to-web CSV for each course, falling back to the saved copy.
 import { parseCourseCSV, todayISO } from '../lib/sheets.js';
-import { todayCard, calendarHtml, resourcesHtml, fmt, sectionSwitch } from '../lib/render.js';
+import { todayCard, calendarHtml, resourcesHtml, fmt, sectionSwitch, url } from '../lib/render.js';
 import site from '../data/site.json';
 import coursesData from '../data/courses.json';
 
@@ -45,7 +45,7 @@ async function loadCourse(c) {
       } catch (e) { console.info(`[${c.id}] live calendar unavailable, using saved copy:`, e.message); }
     }
     try {
-      const text = await fetchText(`/data/fallback/${c.id}.csv`);
+      const text = await fetchText(url(`/data/fallback/${c.id}.csv`));
       return { lessons: parseCourseCSV(text, c, cfg), source: 'saved' };
     } catch {
       return { lessons: [], source: 'saved' }; // e.g. a newly switched-on course with no sheet yet

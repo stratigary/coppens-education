@@ -1,15 +1,17 @@
 ---
 import '../styles/global.css';
 import { site, courses } from '../lib/data.js';
+import { url } from '../lib/render.js';
+const isPreview = import.meta.env.BASE_URL !== '/';
 interface Props { title: string; description?: string; active?: string }
 const { title, description = `${site.teacher}'s science classes at ${site.school}: daily class calendars, notes, textbooks and tools.`, active = '' } = Astro.props;
 const pageTitle = title === 'Today' ? `coppens.education · ${site.teacher}` : `${title} · coppens.education`;
 const nav = [
-  { id: 'home', href: '/', label: 'Today' },
-  ...courses.map(c => ({ id: c.id, href: `/${c.id}/`, label: c.short })),
-  { id: 'tools', href: '/tools/', label: 'Tools' },
-  { id: 'books', href: '/books/', label: 'Books' },
-  { id: 'contact', href: '/contact/', label: 'Contact' },
+  { id: 'home', href: url('/'), label: 'Today' },
+  ...courses.map(c => ({ id: c.id, href: url(`/${c.id}/`), label: c.short })),
+  { id: 'tools', href: url('/tools/'), label: 'Tools' },
+  { id: 'books', href: url('/books/'), label: 'Books' },
+  { id: 'contact', href: url('/contact/'), label: 'Contact' },
 ];
 ---
 <!doctype html>
@@ -22,8 +24,8 @@ const nav = [
   <meta name="color-scheme" content="light dark" />
   <meta name="theme-color" content="#EEF1E8" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#121915" media="(prefers-color-scheme: dark)" />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+  <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
+  {isPreview ? <meta name="robots" content="noindex, nofollow" /> : <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />}
   <script is:inline>
     try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
@@ -35,7 +37,7 @@ const nav = [
   <a class="skip" href="#main">Skip to main content</a>
   <header class="site">
     <div class="wrap">
-      <a class="mark" href="/" aria-label="coppens.education, home"><b>coppens</b><span>.education</span></a>
+      <a class="mark" href={url('/')} aria-label="coppens.education, home"><b>coppens</b><span>.education</span></a>
       <nav class="main" aria-label="Main">
         <ul>
           {nav.map(n => <li><a href={n.href} aria-current={n.id === active ? 'page' : undefined}>{n.label}</a></li>)}
