@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SA:V Ratio Visualizer</title>
+<style>
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: transparent; 
+    margin: 0; 
+    padding: 10px; 
+    color: #333; 
+  }
+  .calculator-container { 
+    max-width: 600px; 
+    margin: 0 auto; 
+    background: #ffffff; 
+    padding: 25px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    border-top: 6px solid #ff7043; /* Coral theme */
+  }
+  h2 { 
+    color: #2c3e50; 
+    margin-top: 0; 
+    text-align: center; 
+    font-size: 22px;
+  }
+  .control-panel {
+    background: #fbe9e7;
+    padding: 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border: 1px solid #ffccbc;
+  }
+  .input-group {
+    margin-bottom: 15px;
+  }
+  .input-group:last-child {
+    margin-bottom: 0;
+  }
+  .input-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #bf360c;
+  }
+  select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    background: white;
+  }
+  input[type="range"] {
+    width: 100%;
+    margin: 10px 0;
+  }
+  .slider-value {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #d84315;
+    text-align: center;
+    display: block;
+  }
+  
+  .visualizer-stage {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    border-radius: 6px;
+    border: 1px dashed #ccc;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .shape {
+    background: #ff7043;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.8em;
+    box-shadow: inset -5px -5px 15px rgba(0,0,0,0.2);
+  }
+  .shape.cube { border-radius: 4px; }
+  .shape.sphere { border-radius: 50%; }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    text-align: center;
+  }
+  @media (max-width: 450px) {
+    .results-grid { grid-template-columns: 1fr; }
+  }
+  .result-card {
+    background: white;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #ffccbc;
+  }
+  .result-card.primary {
+    background: #ffccbc;
+    border-color: #ffab91;
+  }
+  .res-title {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  .primary .res-title { color: #bf360c; }
+  .res-value {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+  .primary .res-value { color: #d84315; }
+  
+  .explanation {
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #555;
+    text-align: center;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="calculator-container">
+  <h2>Surface Area to Volume Visualizer</h2>
+  
+  <div class="control-panel">
+    <div class="input-group">
+      <label for="shapeType">Select Shape:</label>
+      <select id="shapeType" onchange="updateVisualizer()">
+        <option value="cube">Cube (Generic Cell Model)</option>
+        <option value="sphere">Sphere (Coccus Bacteria / Animal Cell)</option>
+      </select>
+    </div>
+    
+    <div class="input-group" style="margin-top: 20px;">
+      <label for="sizeSlider">Adjust Size (Side Length / Radius):</label>
+      <input type="range" id="sizeSlider" min="1" max="20" value="2" step="1" oninput="updateVisualizer()">
+      <span class="slider-value"><span id="sizeValue">2</span> &mu;m</span>
+    </div>
+  </div>
+
+  <div class="visualizer-stage">
+    <div id="dynamicShape" class="shape cube" style="width: 40px; height: 40px;"></div>
+  </div>
+
+  <div class="results-grid">
+    <div class="result-card">
+      <div class="res-title">Surface Area (Supply)</div>
+      <div class="res-value" id="saResult">-</div>
+    </div>
+    <div class="result-card">
+      <div class="res-title">Volume (Demand)</div>
+      <div class="res-value" id="volResult">-</div>
+    </div>
+    <div class="result-card primary">
+      <div class="res-title">SA : V Ratio</div>
+      <div class="res-value" id="ratioResult">-</div>
+    </div>
+  </div>
+  
+  <div class="explanation" id="expText"></div>
+</div>
+
+<script>
+  function updateVisualizer() {
+    const shape = document.getElementById('shapeType').value;
+    const size = parseFloat(document.getElementById('sizeSlider').value);
+    
+    document.getElementById('sizeValue').innerText = size;
+    
+    let sa, vol;
+
+    if (shape === 'cube') {
+      sa = 6 * Math.pow(size, 2);
+      vol = Math.pow(size, 3);
+    } else {
+      sa = 4 * Math.PI * Math.pow(size, 2);
+      vol = (4/3) * Math.PI * Math.pow(size, 3);
+    }
+
+    const ratio = sa / vol;
+
+    // Update Text Results
+    document.getElementById('saResult').innerText = sa.toFixed(1);
+    document.getElementById('volResult').innerText = vol.toFixed(1);
+    document.getElementById('ratioResult').innerText = ratio.toFixed(2) + " : 1";
+
+    // Update Visual Shape
+    const visualElement = document.getElementById('dynamicShape');
+    visualElement.className = 'shape ' + shape;
+    
+    // Scale the visual representation (base size 20px per unit, max visual size ~180px)
+    // We use a non-linear scale for visual bounds so it doesn't break the container
+    let displaySize = 20 + (size * 8); 
+    visualElement.style.width = displaySize + 'px';
+    visualElement.style.height = displaySize + 'px';
+
+    // Update Explanation Text
+    const expText = document.getElementById('expText');
+    if (ratio > 2) {
+      expText.innerHTML = "<span style='color:green;'>High Ratio: The cell can easily supply its volume. Transport is efficient!</span>";
+    } else if (ratio > 0.5) {
+      expText.innerHTML = "<span style='color:orange;'>Decreasing Ratio: Transport is slowing down as the cell gets larger.</span>";
+    } else {
+      expText.innerHTML = "<span style='color:red;'>Critically Low Ratio: The cell is too large! It will struggle to take in enough nutrients and expel waste.</span>";
+    }
+  }
+
+  // Run once on load
+  updateVisualizer();
+</script>
+
+</body>
+</html>

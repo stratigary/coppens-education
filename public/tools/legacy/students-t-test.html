@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student's t-test Calculator</title>
+<style>
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: transparent; 
+    margin: 0; 
+    padding: 10px; 
+    color: #333; 
+  }
+  .calculator-container { 
+    max-width: 650px; 
+    margin: 0 auto; 
+    background: #ffffff; 
+    padding: 25px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    border-top: 6px solid #00838f; /* Teal theme */
+  }
+  h2 { 
+    color: #2c3e50; 
+    margin-top: 0; 
+    text-align: center; 
+    font-size: 22px;
+  }
+  .formula-box { 
+    background: #e0f7fa; 
+    padding: 20px; 
+    border-radius: 6px; 
+    text-align: center; 
+    margin-bottom: 20px; 
+    color: #006064; 
+  }
+  .formula-box span.equation {
+    font-size: 1.4em;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+  }
+  .definitions {
+    text-align: left;
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #b2ebf2;
+  }
+  .definitions p {
+    margin: 0 0 10px 0;
+    font-weight: bold;
+    color: #00838f;
+  }
+  .definitions ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+    font-size: 0.9em;
+    color: #444;
+  }
+  .definitions li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .data-entry-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 500px) {
+    .data-entry-grid { grid-template-columns: 1fr; }
+  }
+  .input-group {
+    display: flex;
+    flex-direction: column;
+  }
+  .input-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #455a64;
+  }
+  .input-group small {
+    color: #777;
+    font-size: 0.8em;
+    margin-bottom: 8px;
+  }
+  textarea {
+    width: 100%;
+    height: 180px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    resize: vertical;
+    box-sizing: border-box;
+    font-family: monospace;
+  }
+  textarea:focus {
+    border-color: #00838f;
+    outline: none;
+  }
+  .btn-calc { 
+    background: #00838f; 
+    color: white; 
+    padding: 12px 15px; 
+    width: 100%; 
+    font-size: 18px; 
+    font-weight: bold; 
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-calc:hover { background: #006064; }
+  
+  .result-box { 
+    margin-top: 20px; 
+    padding: 20px; 
+    background: #f5f5f5; 
+    border-radius: 6px; 
+    display: none; 
+    border: 1px solid #e0e0e0;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  .group-stats {
+    background: white;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #cfd8dc;
+  }
+  .group-stats h4 {
+    margin: 0 0 10px 0;
+    color: #00838f;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+  }
+  .stat-row strong { color: #333; }
+  
+  .final-t {
+    text-align: center;
+    background: #e0f7fa;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #b2ebf2;
+  }
+  .final-t .t-val {
+    font-size: 24px;
+    font-weight: bold;
+    color: #006064;
+    margin-bottom: 5px;
+  }
+  .final-t .df-val {
+    font-size: 16px;
+    color: #00838f;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<div class="calculator-container">
+  <h2>Unpaired Student's t-test</h2>
+  
+  <div class="formula-box">
+    <span class="equation">t = |x&#772;<sub>1</sub> &minus; x&#772;<sub>2</sub>| &divide; &radic;[(s<sub>1</sub>&sup2;/n<sub>1</sub>) + (s<sub>2</sub>&sup2;/n<sub>2</sub>)]</span>
+    
+    <div class="definitions">
+      <p>Where:</p>
+      <ul>
+        <li><strong>x&#772;</strong> = Mean (average) of the group</li>
+        <li><strong>s</strong> = Sample standard deviation of the group</li>
+        <li><strong>n</strong> = Number of observations in the group</li>
+        <li><strong>df</strong> = Degrees of Freedom (n<sub>1</sub> + n<sub>2</sub> &minus; 2)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="data-entry-grid">
+    <div class="input-group">
+      <label for="group1">Group 1 Data:</label>
+      <small>Paste your data here (spaces, commas, or new lines are fine).</small>
+      <textarea id="group1" placeholder="e.g.&#10;4.5&#10;5.1&#10;4.8&#10;5.3"></textarea>
+    </div>
+    <div class="input-group">
+      <label for="group2">Group 2 Data:</label>
+      <small>Paste your data here (spaces, commas, or new lines are fine).</small>
+      <textarea id="group2" placeholder="e.g.&#10;6.2&#10;5.8&#10;6.5&#10;6.1"></textarea>
+    </div>
+  </div>
+
+  <button class="btn-calc" onclick="calculateTTest()">Calculate t-test</button>
+
+  <div class="result-box" id="resultBox">
+    <div class="stats-grid">
+      <div class="group-stats">
+        <h4>Group 1</h4>
+        <div class="stat-row"><span>Count (n):</span> <strong id="n1-res">-</strong></div>
+        <div class="stat-row"><span>Mean (x&#772;):</span> <strong id="mean1-res">-</strong></div>
+        <div class="stat-row"><span>Std Dev (s):</span> <strong id="sd1-res">-</strong></div>
+      </div>
+      <div class="group-stats">
+        <h4>Group 2</h4>
+        <div class="stat-row"><span>Count (n):</span> <strong id="n2-res">-</strong></div>
+        <div class="stat-row"><span>Mean (x&#772;):</span> <strong id="mean2-res">-</strong></div>
+        <div class="stat-row"><span>Std Dev (s):</span> <strong id="sd2-res">-</strong></div>
+      </div>
+    </div>
+    
+    <div class="final-t">
+      <div class="t-val">t = <span id="t-final">-</span></div>
+      <div class="df-val">Degrees of Freedom (df) = <span id="df-final">-</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Helper function to parse textarea input into an array of numbers
+  function parseData(inputText) {
+    // Split by commas, spaces, or newlines, filter out empty strings, and convert to numbers
+    const rawArray = inputText.split(/[\s,]+/).filter(item => item.trim() !== '');
+    const numArray = rawArray.map(item => parseFloat(item));
+    // Filter out any NaNs that might have slipped through
+    return numArray.filter(item => !isNaN(item));
+  }
+
+  // Helper function to calculate mean
+  function getMean(arr) {
+    const sum = arr.reduce((a, b) => a + b, 0);
+    return sum / arr.length;
+  }
+
+  // Helper function to calculate sample standard deviation
+  function getSampleSD(arr, mean) {
+    if (arr.length <= 1) return 0;
+    const squaredDiffs = arr.map(x => Math.pow(x - mean, 2));
+    const sumSquaredDiffs = squaredDiffs.reduce((a, b) => a + b, 0);
+    return Math.sqrt(sumSquaredDiffs / (arr.length - 1));
+  }
+
+  function calculateTTest() {
+    const text1 = document.getElementById('group1').value;
+    const text2 = document.getElementById('group2').value;
+
+    const data1 = parseData(text1);
+    const data2 = parseData(text2);
+
+    if (data1.length < 2 || data2.length < 2) {
+      alert("You need at least 2 valid numbers in each group to calculate a t-test and standard deviation.");
+      return;
+    }
+
+    // Group 1 Stats
+    const n1 = data1.length;
+    const mean1 = getMean(data1);
+    const sd1 = getSampleSD(data1, mean1);
+
+    // Group 2 Stats
+    const n2 = data2.length;
+    const mean2 = getMean(data2);
+    const sd2 = getSampleSD(data2, mean2);
+
+    // t-test calculation (Welch's / Unpaired)
+    const numerator = Math.abs(mean1 - mean2);
+    const variance1 = Math.pow(sd1, 2) / n1;
+    const variance2 = Math.pow(sd2, 2) / n2;
+    const denominator = Math.sqrt(variance1 + variance2);
+    
+    const tValue = numerator / denominator;
+    const df = n1 + n2 - 2;
+
+    // Display Results
+    document.getElementById('resultBox').style.display = 'block';
+    
+    document.getElementById('n1-res').innerText = n1;
+    document.getElementById('mean1-res').innerText = mean1.toFixed(3);
+    document.getElementById('sd1-res').innerText = sd1.toFixed(3);
+
+    document.getElementById('n2-res').innerText = n2;
+    document.getElementById('mean2-res').innerText = mean2.toFixed(3);
+    document.getElementById('sd2-res').innerText = sd2.toFixed(3);
+
+    document.getElementById('t-final').innerText = tValue.toFixed(3);
+    document.getElementById('df-final').innerText = df;
+  }
+</script>
+
+</body>
+</html>

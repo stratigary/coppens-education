@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaf Area Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FAFBF7;
+    --panel: #FFFFFF;
+    --ink: #1E2B22;
+    --ink-soft: #55635A;
+    --leaf: #2E6B3A;
+    --leaf-soft: #E4EFE0;
+    --grid: #BCD6E0;
+    --mark: #C2266D;
+    --amber: #D9981A;
+    --scale: #F26B1D;
+    --rule: #D9E2DA;
+    --font: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.45; }
+  button, input, select { font: inherit; color: inherit; }
+  button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid var(--scale); outline-offset: 2px; }
+
+  header {
+    padding: 22px 20px 18px;
+    border-bottom: 2px solid var(--leaf);
+    background-color: #F4F9FA;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -1px -1px;
+  }
+  header h1 { margin: 0; font-size: 1.85rem; line-height: 1.1; letter-spacing: -0.01em; display: inline-block; background: var(--paper); padding: 2px 8px; color: var(--leaf); }
+  header p { margin: 8px 0 0; display: inline-block; background: var(--paper); padding: 2px 8px; max-width: 70ch; color: var(--ink-soft); }
+
+  .app { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; padding: 18px 20px; align-items: start; }
+  @media (max-width: 880px) { .app { grid-template-columns: 1fr; } }
+
+  /* Stage */
+  .stage { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px; border-bottom: 1px solid var(--rule); }
+  .seg { display: inline-flex; border: 1px solid var(--leaf); border-radius: 5px; overflow: hidden; }
+  .seg button { border: 0; background: transparent; padding: 7px 14px; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--leaf); }
+  .seg button[aria-pressed="true"] { background: var(--leaf); color: #fff; }
+  .toolbar label { margin-left: auto; display: flex; gap: 6px; align-items: center; color: var(--ink-soft); font-size: 0.9rem; }
+  select, input[type="number"], input[type="text"] { border: 1px solid #B9C4BC; border-radius: 4px; padding: 6px 8px; background: #fff; }
+  .status { padding: 8px 12px; font-size: 0.95rem; background: var(--leaf-soft); border-bottom: 1px solid var(--rule); min-height: 2.3em; }
+  .status.warn { background: #FCEFD6; }
+
+  .canvas-wrap { position: relative; padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 360px; background: #EEF2EE; }
+  #cv { display: none; max-width: 100%; max-height: 78vh; width: auto; height: auto; cursor: crosshair; touch-action: none; box-shadow: 0 0 0 1px #C7D1C9; }
+  #cv.leaf-mode { cursor: pointer; touch-action: manipulation; }
+  #loupe { position: absolute; top: 18px; width: 150px; height: 150px; border: 3px solid var(--ink); border-radius: 50%; background: #fff; pointer-events: none; display: none; }
+
+  .drop { text-align: center; padding: 40px 20px; border: 2px dashed #A9BBAE; border-radius: 6px; max-width: 460px; background: var(--paper); }
+  .drop.over { border-color: var(--leaf); background: var(--leaf-soft); }
+  .drop p { margin: 10px 0 0; color: var(--ink-soft); }
+
+  .btn { display: inline-block; border: 1px solid var(--leaf); background: var(--leaf); color: #fff; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: 700; }
+  .btn.ghost { background: transparent; color: var(--leaf); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .linkish { border: 0; background: none; color: var(--leaf); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.9rem; }
+
+  /* Steps */
+  .steps { display: flex; flex-direction: column; gap: 12px; }
+  .step { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 14px 14px 52px; position: relative; }
+  .step::before { content: attr(data-n); position: absolute; left: 14px; top: 13px; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--leaf); color: var(--leaf); font-weight: 700; display: grid; place-items: center; font-size: 0.9rem; }
+  .step.done::before { content: "✓"; background: var(--leaf); color: #fff; }
+  .step h2 { margin: 0 0 6px; font-size: 1.05rem; }
+  .step p { margin: 0 0 8px; color: var(--ink-soft); font-size: 0.93rem; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+  .row > label { font-size: 0.93rem; }
+  .field { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; font-size: 0.93rem; }
+  .field .hint { color: var(--ink-soft); font-size: 0.85rem; }
+  input[type="range"] { width: 100%; accent-color: var(--leaf); }
+  .readout { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+  .result { border-color: var(--leaf); border-width: 2px; }
+  .area { font-size: 2.6rem; line-height: 1; font-weight: 700; color: var(--leaf); font-variant-numeric: tabular-nums; margin: 6px 0 4px; }
+  .area small { font-size: 1.1rem; font-weight: 400; color: var(--ink-soft); }
+  .note { font-size: 0.88rem; color: #8A5A00; background: #FCEFD6; padding: 6px 8px; border-radius: 4px; margin-top: 6px; display: none; }
+  .legend { display: flex; gap: 14px; font-size: 0.85rem; color: var(--ink-soft); margin-top: 6px; flex-wrap: wrap; }
+  .sw { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
+
+  details { font-size: 0.93rem; }
+  summary { cursor: pointer; color: var(--leaf); font-weight: 700; }
+  details ul { margin: 8px 0 0; padding-left: 20px; color: var(--ink-soft); }
+  details li { margin-bottom: 4px; }
+
+  /* Results table */
+  .results { margin: 0 20px 24px; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px; }
+  .results h2 { margin: 0 0 10px; font-size: 1.1rem; }
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 0.93rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  th { color: var(--ink-soft); font-weight: 700; }
+  td.num { text-align: right; }
+  .empty { color: var(--ink-soft); font-style: italic; }
+  .x { border: 0; background: none; color: var(--mark); cursor: pointer; font-size: 1.1rem; }
+  #fallback { width: 100%; height: 110px; margin-top: 10px; display: none; font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem; }
+  .sr { position: absolute; left: -9999px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Leaf area from graph paper</h1><br>
+  <p>Photograph a leaf on 1&nbsp;cm graph paper, mark a known distance, and the tool counts the leaf's pixels to find its area.</p>
+</header>
+
+<main class="app">
+  <section class="stage" aria-label="Photo workspace">
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="What clicking does">
+        <button id="modeScale" aria-pressed="true">Set scale</button>
+        <button id="modeLeaf" aria-pressed="false">Pick leaf</button>
+      </div>
+      <label>View
+        <select id="view">
+          <option value="overlay">Photo with outline</option>
+          <option value="photo">Photo only</option>
+          <option value="mask">Black &amp; white mask</option>
+        </select>
+      </label>
+    </div>
+    <div class="status" id="status" role="status">Start by loading a photo of your leaf.</div>
+    <div class="canvas-wrap" id="wrap">
+      <div class="drop" id="drop">
+        <button class="btn" id="chooseBtn">Choose a leaf photo</button>
+        <p>or drag a JPG or PNG here</p>
+      </div>
+      <canvas id="cv" aria-label="Leaf photo"></canvas>
+      <canvas id="loupe" width="150" height="150" aria-hidden="true"></canvas>
+    </div>
+  </section>
+
+  <aside class="steps">
+    <section class="step" id="step1" data-n="1">
+      <h2>Load a photo</h2>
+      <p>Take the picture from directly above, with the leaf flat on the graph paper.</p>
+      <input type="file" id="file" accept="image/*" class="sr">
+      <div class="row"><button class="btn ghost" id="chooseBtn2">Choose photo</button></div>
+      <details>
+        <summary>Tips for a good photo</summary>
+        <ul>
+          <li>Hold the camera level, straight over the paper. Tilted shots stretch the grid and throw off the area.</li>
+          <li>Flatten the leaf under clear tape or a sheet of glass. Curled edges hide area.</li>
+          <li>Use even light with no shadow from your phone or hand.</li>
+          <li>Keep the leaf away from the paper's edge and other objects.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="step" id="step2" data-n="2">
+      <h2>Set the scale</h2>
+      <p>With <b>Set scale</b> selected, click two points on grid lines a known distance apart. A longer line gives a more accurate result. Drag either end to adjust it.</p>
+      <div class="row">
+        <label for="known">Distance between points</label>
+        <input type="number" id="known" value="10" min="0.1" step="0.5" style="width:80px"> cm
+      </div>
+      <div class="row">Scale: <span class="readout" id="scaleOut">not set</span></div>
+      <button class="linkish" id="clearScale">Clear the line</button>
+    </section>
+
+    <section class="step" id="step3" data-n="3">
+      <h2>Find the leaf</h2>
+      <p>The tool outlines the biggest object automatically. If it picked the wrong thing, choose <b>Pick leaf</b> and click on the leaf.</p>
+      <div class="field">
+        <label for="method">Detect pixels by</label>
+        <select id="method">
+          <option value="green">Greenness (green leaves)</option>
+          <option value="sat">Color strength (red, yellow, brown leaves)</option>
+          <option value="dark">Darkness (dark or dried leaves)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="thresh">Cutoff: <span class="readout" id="threshOut">—</span></label>
+        <input type="range" id="thresh" min="0" max="255" value="128">
+        <span class="hint" id="threshHint">Slide right to count only the greenest pixels.</span>
+        <div><button class="linkish" id="autoBtn">Reset to automatic cutoff</button></div>
+      </div>
+      <div class="field">
+        <label for="clean">Remove grid lines and specks: <span class="readout" id="cleanOut">2</span></label>
+        <input type="range" id="clean" min="0" max="8" value="2">
+        <span class="hint">Raise this if grid lines are being counted. Too high rounds off fine leaf tips.</span>
+      </div>
+      <div class="row">
+        <input type="checkbox" id="holes" checked><label for="holes">Fill holes inside the leaf</label>
+      </div>
+      <button class="linkish" id="largestBtn">Go back to the largest object</button>
+    </section>
+
+    <section class="step result" id="step4" data-n="4">
+      <h2>Leaf area</h2>
+      <div class="area" id="areaOut">—</div>
+      <p id="areaDetail">Load a photo and set the scale to see the area.</p>
+      <div class="legend">
+        <span><span class="sw" style="background:var(--mark)"></span>Counted as leaf</span>
+        <span><span class="sw" style="background:var(--amber)"></span>Detected, not counted</span>
+      </div>
+      <div class="note" id="noiseNote"></div>
+      <div class="row" style="margin-top:12px">
+        <label for="label" class="sr">Label</label>
+        <input type="text" id="label" value="Leaf 1" style="flex:1; min-width:0">
+        <button class="btn" id="addBtn" disabled>Add to table</button>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<section class="results" aria-labelledby="resH">
+  <h2 id="resH">Measurements</h2>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>#</th><th>Label</th><th style="text-align:right">Area (cm²)</th><th style="text-align:right">Scale (px/cm)</th><th>Method</th><th></th></tr></thead>
+      <tbody id="tbody"><tr><td colspan="6" class="empty">No measurements yet.</td></tr></tbody>
+    </table>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn" id="copyBtn" disabled>Copy for Google Sheets</button>
+    <button class="btn ghost" id="csvBtn" disabled>Download CSV</button>
+    <button class="linkish" id="clearAll" disabled>Clear table</button>
+    <span id="copyMsg" style="color:var(--ink-soft); font-size:0.9rem"></span>
+  </div>
+  <textarea id="fallback" readonly aria-label="Table data to copy"></textarea>
+</section>
+
+<script>
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const MAXDIM = 1600;
+
+  // ---------- state ----------
+  let W = 0, H = 0, N = 0;
+  let src = null;          // RGBA pixels of working image
+  let feat = null;         // per-pixel feature 0..255
+  let fg = null;           // thresholded + cleaned mask
+  let leaf = null;         // selected leaf mask
+  let leafCount = 0, otherCount = 0;
+  let p1 = null, p2 = null, hover = null, drag = null;
+  let seed = null, seedMissed = false;
+  let mode = "scale";
+  let overlayDirty = true;
+  let pending = false;
+  let stack = null;
+  const rows = [];
+
+  const work = document.createElement("canvas");
+  const wctx = work.getContext("2d", { willReadFrequently: true });
+  const over = document.createElement("canvas");
+  const octx = over.getContext("2d");
+  const cv = $("cv"), ctx = cv.getContext("2d");
+  const loupe = $("loupe"), lctx = loupe.getContext("2d");
+
+  const methodNames = { green: "Greenness", sat: "Color strength", dark: "Darkness" };
+  const threshHints = {
+    green: "Slide right to count only the greenest pixels.",
+    sat: "Slide right to count only the most strongly colored pixels.",
+    dark: "Slide right to count only the darkest pixels."
+  };
+
+  function setStatus(msg, warn) {
+    const s = $("status");
+    s.textContent = msg;
+    s.classList.toggle("warn", !!warn);
+  }
+
+  // ---------- loading ----------
+  function openPicker() { $("file").click(); }
+  $("chooseBtn").onclick = openPicker;
+  $("chooseBtn2").onclick = openPicker;
+  $("file").onchange = (e) => { if (e.target.files[0]) loadFile(e.target.files[0]); e.target.value = ""; };
+
+  const wrap = $("wrap"), drop = $("drop");
+  wrap.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+  wrap.addEventListener("dragleave", () => drop.classList.remove("over"));
+  wrap.addEventListener("drop", (e) => {
+    e.preventDefault(); drop.classList.remove("over");
+    if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+  });
+
+  function loadFile(file) {
+    if (!file.type.startsWith("image/")) { setStatus("That file isn't an image. Choose a JPG or PNG photo.", true); return; }
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, MAXDIM / Math.max(img.naturalWidth, img.naturalHeight));
+      W = Math.round(img.naturalWidth * s); H = Math.round(img.naturalHeight * s); N = W * H;
+      work.width = cv.width = over.width = W;
+      work.height = cv.height = over.height = H;
+      wctx.drawImage(img, 0, 0, W, H);
+      src = wctx.getImageData(0, 0, W, H).data;
+      stack = new Int32Array(N);
+      URL.revokeObjectURL(url);
+      p1 = p2 = hover = seed = null; seedMissed = false;
+      drop.style.display = "none"; cv.style.display = "block";
+      $("step1").classList.add("done");
+      setMode("scale");
+      computeFeature(); autoThreshold(); segment(); overlayDirty = true;
+      render();
+      setStatus("Photo loaded. Click a point on a grid line, then a second point a known distance away.");
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      setStatus("This photo format can't be opened here. Save it as a JPG or PNG and try again.", true);
+    };
+    img.src = url;
+  }
+
+  // ---------- image analysis ----------
+  function computeFeature() {
+    const m = $("method").value;
+    feat = new Uint8Array(N);
+    for (let i = 0, j = 0; i < N; i++, j += 4) {
+      const r = src[j], g = src[j + 1], b = src[j + 2];
+      let v;
+      if (m === "green") {
+        v = (2 * g - r - b + 255) / 2;           // excess-green index, paper ≈ 127
+      } else if (m === "sat") {
+        const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+        v = mx === 0 ? 0 : (mx - mn) * 255 / mx;  // HSV saturation
+      } else {
+        v = 255 - (0.299 * r + 0.587 * g + 0.114 * b);
+      }
+      feat[i] = v < 0 ? 0 : v > 255 ? 255 : v;
+    }
+  }
+
+  function autoThreshold() {
+    const hist = new Float64Array(256);
+    for (let i = 0; i < N; i++) hist[feat[i]]++;
+    let sum = 0; for (let t = 0; t < 256; t++) sum += t * hist[t];
+    let sumB = 0, wB = 0, best = 0, th = 128;
+    for (let t = 0; t < 256; t++) {
+      wB += hist[t]; if (!wB) continue;
+      const wF = N - wB; if (!wF) break;
+      sumB += t * hist[t];
+      const mB = sumB / wB, mF = (sum - sumB) / wF;
+      const between = wB * wF * (mB - mF) * (mB - mF);
+      if (between > best) { best = between; th = t; }
+    }
+    $("thresh").value = th;
+    $("threshOut").textContent = th;
+  }
+
+  // Binary erode/dilate with a square window, done as two fast sliding-window passes.
+  function morph(a, r, erode) {
+    const tmp = new Uint8Array(N), out = new Uint8Array(N);
+    const pre = new Int32Array(Math.max(W, H) + 1);
+    for (let y = 0; y < H; y++) {
+      const base = y * W;
+      for (let x = 0; x < W; x++) pre[x + 1] = pre[x] + a[base + x];
+      for (let x = 0; x < W; x++) {
+        const lo = x - r < 0 ? 0 : x - r, hi = x + r + 1 > W ? W : x + r + 1;
+        const s = pre[hi] - pre[lo];
+        tmp[base + x] = erode ? (s === hi - lo ? 1 : 0) : (s > 0 ? 1 : 0);
+      }
+    }
+    for (let x = 0; x < W; x++) {
+      for (let y = 0; y < H; y++) pre[y + 1] = pre[y] + tmp[y * W + x];
+      for (let y = 0; y < H; y++) {
+        const lo = y - r < 0 ? 0 : y - r, hi = y + r + 1 > H ? H : y + r + 1;
+        const s = pre[hi] - pre[lo];
+        out[y * W + x] = erode ? (s === hi - lo ? 1 : 0) : (s > 0 ? 1 : 0);
+      }
+    }
+    return out;
+  }
+
+  // 8-connected flood fill over mask==1; writes `val` into `lab`; returns pixel count.
+  function flood(start, mask, lab, val) {
+    let sp = 0, count = 0;
+    stack[sp++] = start; lab[start] = val;
+    while (sp) {
+      const i = stack[--sp]; count++;
+      const x = i % W, y = (i - x) / W;
+      for (let dy = -1; dy <= 1; dy++) {
+        const yy = y + dy; if (yy < 0 || yy >= H) continue;
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x + dx; if (xx < 0 || xx >= W) continue;
+          const k = yy * W + xx;
+          if (mask[k] && !lab[k]) { lab[k] = val; stack[sp++] = k; }
+        }
+      }
+    }
+    return count;
+  }
+
+  function fillHoles(mask) {
+    const seen = new Uint8Array(N);
+    let sp = 0;
+    const push = (k) => { if (!mask[k] && !seen[k]) { seen[k] = 1; stack[sp++] = k; } };
+    for (let x = 0; x < W; x++) { push(x); push((H - 1) * W + x); }
+    for (let y = 0; y < H; y++) { push(y * W); push(y * W + W - 1); }
+    while (sp) {
+      const i = stack[--sp], x = i % W;
+      if (x > 0) push(i - 1);
+      if (x < W - 1) push(i + 1);
+      if (i >= W) push(i - W);
+      if (i < N - W) push(i + W);
+    }
+    for (let i = 0; i < N; i++) if (!mask[i] && !seen[i]) mask[i] = 1;
+  }
+
+  function nearestForeground(p) {
+    const cx = Math.round(p.x), cy = Math.round(p.y), R = Math.max(10, Math.round(W / 80));
+    let best = -1, bd = Infinity;
+    for (let y = Math.max(0, cy - R); y <= Math.min(H - 1, cy + R); y++)
+      for (let x = Math.max(0, cx - R); x <= Math.min(W - 1, cx + R); x++) {
+        const k = y * W + x;
+        if (fg[k]) { const d = (x - cx) ** 2 + (y - cy) ** 2; if (d < bd) { bd = d; best = k; } }
+      }
+    return best;
+  }
+
+  function segment() {
+    if (!W) return;
+    const T = +$("thresh").value, r = +$("clean").value;
+    fg = new Uint8Array(N);
+    let fgTotal = 0;
+    for (let i = 0; i < N; i++) if (feat[i] > T) fg[i] = 1;
+    if (r > 0) fg = morph(morph(fg, r, true), r, false);
+    for (let i = 0; i < N; i++) fgTotal += fg[i];
+
+    leaf = new Uint8Array(N);
+    seedMissed = false;
+    let start = -1;
+    if (seed) { start = nearestForeground(seed); if (start < 0) seedMissed = true; }
+
+    if (start >= 0) {
+      flood(start, fg, leaf, 1);
+    } else {
+      const lab = new Int32Array(N);
+      let id = 0, bestId = 0, bestSize = 0;
+      for (let i = 0; i < N; i++) {
+        if (fg[i] && !lab[i]) {
+          const s = flood(i, fg, lab, ++id);
+          if (s > bestSize) { bestSize = s; bestId = id; }
+        }
+      }
+      if (bestId) for (let i = 0; i < N; i++) if (lab[i] === bestId) leaf[i] = 1;
+    }
+
+    let leafRaw = 0; for (let i = 0; i < N; i++) leafRaw += leaf[i];
+    otherCount = fgTotal - leafRaw;
+    if ($("holes").checked && leafRaw) fillHoles(leaf);
+    leafCount = 0; for (let i = 0; i < N; i++) leafCount += leaf[i];
+    $("step3").classList.toggle("done", leafCount > 0);
+    overlayDirty = true;
+  }
+
+  function scheduleSegment() {
+    if (pending || !W) return;
+    pending = true;
+    requestAnimationFrame(() => { pending = false; segment(); render(); });
+  }
+
+  // ---------- drawing ----------
+  function buildOverlay(view) {
+    const img = octx.createImageData(W, H), d = img.data;
+    const M = [194, 38, 109], A = [217, 152, 26];
+    for (let i = 0, j = 0; i < N; i++, j += 4) {
+      const x = i % W;
+      const L = leaf[i];
+      const edge =
+        (L && (x === 0 || x === W - 1 || i < W || i >= N - W || !leaf[i - 1] || !leaf[i + 1] || !leaf[i - W] || !leaf[i + W])) ||
+        (!L && ((x > 0 && leaf[i - 1]) || (x < W - 1 && leaf[i + 1]) || (i >= W && leaf[i - W]) || (i < N - W && leaf[i + W])));
+      if (view === "mask") {
+        if (L) { d[j] = 30; d[j + 1] = 43; d[j + 2] = 34; }
+        else if (fg[i]) { d[j] = A[0]; d[j + 1] = A[1]; d[j + 2] = A[2]; }
+        else { d[j] = d[j + 1] = d[j + 2] = 255; }
+        d[j + 3] = 255;
+      } else if (edge) {
+        d[j] = M[0]; d[j + 1] = M[1]; d[j + 2] = M[2]; d[j + 3] = 255;
+      } else if (L) {
+        d[j] = M[0]; d[j + 1] = M[1]; d[j + 2] = M[2]; d[j + 3] = 70;
+      } else if (fg[i]) {
+        d[j] = A[0]; d[j + 1] = A[1]; d[j + 2] = A[2]; d[j + 3] = 130;
+      }
+    }
+    octx.putImageData(img, 0, 0);
+    overlayDirty = false;
+    over.dataset.view = view;
+  }
+
+  function render() {
+    if (!W) return;
+    const view = $("view").value;
+    if (view !== "photo" && leaf && (overlayDirty || over.dataset.view !== view)) buildOverlay(view);
+    ctx.clearRect(0, 0, W, H);
+    if (view === "mask") ctx.drawImage(over, 0, 0);
+    else { ctx.drawImage(work, 0, 0); if (view === "overlay" && leaf) ctx.drawImage(over, 0, 0); }
+
+    const lw = Math.max(2, W / 450);
+    if (seed) {
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = lw + 2;
+      cross(seed.x, seed.y, lw * 5); ctx.strokeStyle = "#1E2B22"; ctx.lineWidth = lw; cross(seed.x, seed.y, lw * 5);
+    }
+    if (p1) {
+      const end = p2 || hover;
+      if (end) {
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = lw + 3; line(p1, end);
+        ctx.strokeStyle = "#F26B1D"; ctx.lineWidth = lw; line(p1, end);
+      }
+      handle(p1, lw); if (p2) handle(p2, lw);
+      if (p2) {
+        const k = +$("known").value;
+        const txt = (k > 0 ? k : "?") + " cm";
+        const fs = Math.max(14, W / 60);
+        ctx.font = "bold " + fs + "px " + getComputedStyle(document.body).fontFamily;
+        const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2 - fs * 0.9;
+        const tw = ctx.measureText(txt).width;
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.fillRect(mx - tw / 2 - 6, my - fs * 0.85, tw + 12, fs * 1.2);
+        ctx.fillStyle = "#C2470C"; ctx.textAlign = "center"; ctx.fillText(txt, mx, my);
+      }
+    }
+    updateResults();
+  }
+  function line(a, b) { ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+  function cross(x, y, s) { ctx.beginPath(); ctx.moveTo(x - s, y); ctx.lineTo(x + s, y); ctx.moveTo(x, y - s); ctx.lineTo(x, y + s); ctx.stroke(); }
+  function handle(p, lw) {
+    ctx.beginPath(); ctx.arc(p.x, p.y, lw * 3.2, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(242,107,29,0.25)"; ctx.fill();
+    ctx.strokeStyle = "#F26B1D"; ctx.lineWidth = lw; ctx.stroke();
+    ctx.beginPath(); ctx.arc(p.x, p.y, lw * 0.8, 0, Math.PI * 2); ctx.fillStyle = "#F26B1D"; ctx.fill();
+  }
+
+  // ---------- results ----------
+  function pxPerCm() {
+    const k = +$("known").value;
+    if (!p1 || !p2 || !(k > 0)) return null;
+    const d = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+    return d > 0 ? d / k : null;
+  }
+
+  function updateResults() {
+    const s = pxPerCm();
+    $("scaleOut").textContent = s ? s.toFixed(1) + " pixels per cm" : "not set";
+    $("step2").classList.toggle("done", !!s);
+    const note = $("noiseNote");
+    let area = null;
+    if (!W) { $("areaOut").textContent = "—"; $("areaDetail").textContent = "Load a photo and set the scale to see the area."; }
+    else if (!leafCount) { $("areaOut").textContent = "—"; $("areaDetail").textContent = "No leaf detected. Try a different detection method or lower the cutoff."; }
+    else if (!s) { $("areaOut").textContent = "—"; $("areaDetail").textContent = "Leaf found (" + leafCount.toLocaleString() + " pixels). Set the scale to convert pixels to cm²."; }
+    else {
+      area = leafCount / (s * s);
+      $("areaOut").innerHTML = area.toFixed(2) + " <small>cm²</small>";
+      $("areaDetail").textContent = leafCount.toLocaleString() + " leaf pixels ÷ (" + s.toFixed(1) + " px/cm)² ";
+    }
+    $("step4").classList.toggle("done", area !== null);
+    $("addBtn").disabled = area === null;
+
+    if (seedMissed) {
+      note.style.display = "block";
+      note.textContent = "Your click wasn't on a detected object, so the largest object is being used. Click closer to the leaf, or lower the cutoff.";
+    } else if (leafCount && otherCount > 0.25 * leafCount) {
+      note.style.display = "block";
+      note.textContent = "Lots of yellow (detected but not counted). That's fine if the pink outline matches the leaf. If grid lines are touching the leaf, raise the speck removal.";
+    } else note.style.display = "none";
+    return area;
+  }
+
+  // ---------- pointer interaction ----------
+  function toImg(e) {
+    const r = cv.getBoundingClientRect();
+    return {
+      x: Math.min(W - 1, Math.max(0, (e.clientX - r.left) * W / r.width)),
+      y: Math.min(H - 1, Math.max(0, (e.clientY - r.top) * H / r.height))
+    };
+  }
+  function hitHandle(p) {
+    const r = cv.getBoundingClientRect(), tol = 20 * W / r.width;
+    if (p2 && Math.hypot(p.x - p2.x, p.y - p2.y) < tol) return "p2";
+    if (p1 && Math.hypot(p.x - p1.x, p.y - p1.y) < tol) return "p1";
+    return null;
+  }
+
+  cv.addEventListener("pointerdown", (e) => {
+    if (!W) return;
+    const p = toImg(e);
+    if (mode === "scale") {
+      const h = hitHandle(p);
+      if (h) { drag = h; cv.setPointerCapture(e.pointerId); }
+      else if (!p1 || p2) { p1 = p; p2 = null; hover = null; setStatus("Now click a second point on a grid line, as far from the first as you can."); }
+      else {
+        p2 = p; hover = null;
+        const s = pxPerCm();
+        setStatus("Scale set at " + (s ? s.toFixed(1) : "?") + " px/cm. Check that the distance in step 2 matches the number of squares your line spans. Drag an end to fine-tune.");
+      }
+      render(); showLoupe(e, p);
+    } else {
+      seed = p; segment(); render();
+      setStatus(seedMissed ? "Nothing detected where you clicked. Click directly on the leaf." : "Leaf selected. The pink outline shows what's being measured.", seedMissed);
+    }
+  });
+  cv.addEventListener("pointermove", (e) => {
+    if (!W || mode !== "scale") return;
+    const p = toImg(e);
+    if (drag) { if (drag === "p1") p1 = p; else p2 = p; render(); }
+    else if (p1 && !p2) { hover = p; render(); }
+    showLoupe(e, p);
+  });
+  cv.addEventListener("pointerup", (e) => { drag = null; if (e.pointerType !== "mouse") hideLoupe(); });
+  cv.addEventListener("pointercancel", () => { drag = null; hideLoupe(); });
+  cv.addEventListener("pointerleave", (e) => { if (!drag) hideLoupe(); if (p1 && !p2) { hover = null; render(); } });
+
+  function showLoupe(e, p) {
+    const r = cv.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+    const L = 150, k = r.width / W, srcS = L / (4 * k);
+    lctx.imageSmoothingEnabled = false;
+    lctx.fillStyle = "#fff"; lctx.fillRect(0, 0, L, L);
+    lctx.drawImage(cv, p.x - srcS / 2, p.y - srcS / 2, srcS, srcS, 0, 0, L, L);
+    lctx.strokeStyle = "#1E2B22"; lctx.lineWidth = 1;
+    lctx.beginPath(); lctx.moveTo(L / 2, 0); lctx.lineTo(L / 2, L); lctx.moveTo(0, L / 2); lctx.lineTo(L, L / 2); lctx.stroke();
+    const leftSide = (e.clientX - wr.left) > wr.width / 2;
+    loupe.style.left = leftSide ? "18px" : "";
+    loupe.style.right = leftSide ? "" : "18px";
+    loupe.style.display = "block";
+  }
+  function hideLoupe() { loupe.style.display = "none"; }
+
+  function setMode(m) {
+    mode = m;
+    $("modeScale").setAttribute("aria-pressed", m === "scale");
+    $("modeLeaf").setAttribute("aria-pressed", m === "leaf");
+    cv.classList.toggle("leaf-mode", m === "leaf");
+    hideLoupe();
+    if (W) setStatus(m === "scale"
+      ? (p1 && p2 ? "Drag either end of the orange line to adjust it, or click elsewhere to start a new line." : "Click a point on a grid line, then a second point a known distance away.")
+      : "Click on the leaf you want to measure.");
+  }
+  $("modeScale").onclick = () => setMode("scale");
+  $("modeLeaf").onclick = () => setMode("leaf");
+
+  // ---------- controls ----------
+  $("view").onchange = render;
+  $("known").oninput = render;
+  $("clearScale").onclick = () => { p1 = p2 = hover = null; setMode("scale"); render(); };
+  $("method").onchange = () => {
+    $("threshHint").textContent = threshHints[$("method").value];
+    if (!W) return;
+    computeFeature(); autoThreshold(); scheduleSegment();
+  };
+  $("thresh").oninput = () => { $("threshOut").textContent = $("thresh").value; scheduleSegment(); };
+  $("autoBtn").onclick = () => { if (W) { autoThreshold(); scheduleSegment(); } };
+  $("clean").oninput = () => { $("cleanOut").textContent = $("clean").value; scheduleSegment(); };
+  $("holes").onchange = scheduleSegment;
+  $("largestBtn").onclick = () => { seed = null; scheduleSegment(); if (W) setStatus("Using the largest detected object."); };
+
+  // ---------- table ----------
+  $("addBtn").onclick = () => {
+    const area = updateResults(); if (area === null) return;
+    rows.push({
+      label: $("label").value.trim() || "Leaf " + (rows.length + 1),
+      area: area, scale: pxPerCm(),
+      method: methodNames[$("method").value],
+      thresh: +$("thresh").value, clean: +$("clean").value, holes: $("holes").checked
+    });
+    renderTable();
+    const m = $("label").value.match(/^(.*?)(\d+)\s*$/);
+    $("label").value = m ? m[1] + (+m[2] + 1) : "Leaf " + (rows.length + 1);
+    setStatus("Added to the table. Load the next photo when you're ready.");
+  };
+
+  function renderTable() {
+    const tb = $("tbody");
+    tb.innerHTML = "";
+    if (!rows.length) tb.innerHTML = '<tr><td colspan="6" class="empty">No measurements yet.</td></tr>';
+    rows.forEach((r, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = "<td>" + (i + 1) + "</td><td></td><td class='num'>" + r.area.toFixed(2) +
+        "</td><td class='num'>" + r.scale.toFixed(1) + "</td><td>" + r.method + "</td><td><button class='x' aria-label='Remove row'>×</button></td>";
+      tr.children[1].textContent = r.label;
+      tr.querySelector(".x").onclick = () => { rows.splice(i, 1); renderTable(); };
+      tb.appendChild(tr);
+    });
+    const none = !rows.length;
+    $("copyBtn").disabled = $("csvBtn").disabled = $("clearAll").disabled = none;
+    $("fallback").style.display = "none";
+  }
+  $("clearAll").onclick = () => { if (confirm("Remove all measurements from the table?")) { rows.length = 0; renderTable(); } };
+
+  function tableText(sep) {
+    const q = (s) => sep === "," && /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s.replace(/\t/g, " ");
+    const head = ["Label", "Area (cm^2)", "Scale (px/cm)", "Method", "Cutoff", "Speck removal", "Holes filled"];
+    const lines = [head.join(sep)];
+    rows.forEach((r) => lines.push([q(r.label), r.area.toFixed(2), r.scale.toFixed(1), r.method, r.thresh, r.clean, r.holes ? "yes" : "no"].join(sep)));
+    return lines.join("\n");
+  }
+
+  $("copyBtn").onclick = () => {
+    const txt = tableText("\t"), msg = $("copyMsg");
+    const fallback = () => {
+      const ta = $("fallback"); ta.value = txt; ta.style.display = "block"; ta.focus(); ta.select();
+      let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+      msg.textContent = ok ? "Copied. Paste into Google Sheets." : "Select the text below and copy it (Ctrl+C or ⌘C).";
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(() => { msg.textContent = "Copied. Paste into Google Sheets."; }, fallback);
+    } else fallback();
+  };
+
+  $("csvBtn").onclick = () => {
+    try {
+      const blob = new Blob([tableText(",")], { type: "text/csv" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = "leaf_areas.csv";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      $("copyMsg").textContent = "If no file appeared, use Copy for Google Sheets instead.";
+    } catch (e) {
+      $("copyMsg").textContent = "Downloads are blocked here. Use Copy for Google Sheets instead.";
+    }
+  };
+})();
+</script>
+</body>
+</html>

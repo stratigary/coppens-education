@@ -1,0 +1,328 @@
+{
+  "courses": [
+    {
+      "id": "apes",
+      "enabled": true,
+      "name": "AP Environmental Science",
+      "short": "APES",
+      "color": "river",
+      "codeLabel": "AP topic",
+      "format": "apes",
+      "sheetCsvUrl": "",
+      "sheetName": "APES - Unit Plans - 26/27",
+      "blurb": "Earth systems, ecology and the human footprint, built toward the AP exam in May.",
+      "units": [
+        {
+          "id": "U0",
+          "title": "Opening day",
+          "match": [
+            "opening day"
+          ],
+          "trail": false
+        },
+        {
+          "id": "U4",
+          "title": "Earth Systems & Resources",
+          "match": [
+            "u4"
+          ]
+        },
+        {
+          "id": "U1",
+          "title": "The Living World: Ecosystems",
+          "match": [
+            "u1"
+          ]
+        },
+        {
+          "id": "U2",
+          "title": "The Living World: Biodiversity",
+          "match": [
+            "u2"
+          ]
+        },
+        {
+          "id": "U3",
+          "title": "Populations",
+          "match": [
+            "u3"
+          ]
+        },
+        {
+          "id": "U5",
+          "title": "Land & Water Use",
+          "match": [
+            "u5"
+          ]
+        },
+        {
+          "id": "U6",
+          "title": "Energy Resources & Consumption",
+          "match": [
+            "u6"
+          ]
+        },
+        {
+          "id": "U7",
+          "title": "Atmospheric Pollution",
+          "match": [
+            "u7"
+          ]
+        },
+        {
+          "id": "U8",
+          "title": "Aquatic & Terrestrial Pollution",
+          "match": [
+            "u8"
+          ]
+        },
+        {
+          "id": "U9",
+          "title": "Global Change",
+          "match": [
+            "u9"
+          ]
+        },
+        {
+          "id": "REV",
+          "title": "AP Exam Review",
+          "match": [
+            "ap exam review"
+          ]
+        }
+      ],
+      "toolLinks": [
+        {
+          "match": "carrying capacity|population growth",
+          "href": "/tools/carrying-capacity/",
+          "label": "Try the carrying capacity explorer"
+        }
+      ]
+    },
+    {
+      "id": "ib-bio",
+      "enabled": true,
+      "name": "IB Biology, Year 1",
+      "short": "IB Bio",
+      "color": "moss",
+      "codeLabel": "Syllabus",
+      "format": "ib",
+      "sheetCsvUrl": "",
+      "sheetName": "IB Biology Year 1 - Unit Plans - 26/27",
+      "blurb": "The first year of IB Diploma Biology. Blue and Gold sections meet on alternate days.",
+      "sections": [
+        "Blue",
+        "Gold"
+      ],
+      "units": [
+        {
+          "id": "SUM",
+          "title": "Summer modules",
+          "match": [
+            "summer modules"
+          ],
+          "trail": false
+        },
+        {
+          "id": "U1",
+          "title": "Introduction to Biology",
+          "match": [
+            "introduction to biology"
+          ]
+        },
+        {
+          "id": "U2",
+          "title": "Biodiversity & Sustainability",
+          "match": [
+            "biodiversity & sustainability",
+            "biodiversity and sustainability"
+          ]
+        },
+        {
+          "id": "U3",
+          "title": "Botany",
+          "match": [
+            "botany"
+          ]
+        },
+        {
+          "id": "U4",
+          "title": "Intro to Cells",
+          "match": [
+            "intro to cells"
+          ]
+        },
+        {
+          "id": "U5",
+          "title": "Differentiation, Division & Cancer",
+          "match": [
+            "differentiation"
+          ]
+        },
+        {
+          "id": "U6",
+          "title": "Membranes & Transport",
+          "match": [
+            "membranes"
+          ]
+        },
+        {
+          "id": "U7",
+          "title": "Water, Carbs & Lipids",
+          "match": [
+            "water, carbs"
+          ]
+        },
+        {
+          "id": "U8",
+          "title": "DNA Structure & Replication",
+          "match": [
+            "dna structure"
+          ]
+        },
+        {
+          "id": "U9",
+          "title": "Protein Synthesis & Epigenetics",
+          "match": [
+            "protein synthesis"
+          ]
+        },
+        {
+          "id": "U10",
+          "title": "Mutations & Viruses",
+          "match": [
+            "mutations"
+          ]
+        },
+        {
+          "id": "U11",
+          "title": "Proteins & Enzymes",
+          "match": [
+            "proteins & enzymes",
+            "proteins and enzymes"
+          ]
+        },
+        {
+          "id": "IA",
+          "title": "Internal Assessment",
+          "match": [
+            "internal assessment"
+          ]
+        }
+      ],
+      "toolLinks": []
+    },
+    {
+      "id": "env-sci",
+      "enabled": true,
+      "name": "Environmental Science",
+      "short": "Env Sci",
+      "color": "prairie",
+      "codeLabel": "NGSS",
+      "format": "envsci",
+      "sheetCsvUrl": "",
+      "sheetName": "Environmental Science - Unit Plans - 26/27",
+      "blurb": "College-prep environmental science: how Earth's systems work and how people change them.",
+      "units": [
+        {
+          "id": "U1",
+          "title": "Introduction to Environmental Science",
+          "match": [
+            "unit 1"
+          ]
+        },
+        {
+          "id": "U2",
+          "title": "Population Ecology",
+          "match": [
+            "unit 2"
+          ]
+        },
+        {
+          "id": "U8",
+          "title": "Climate Change",
+          "match": [
+            "unit 8"
+          ]
+        },
+        {
+          "id": "U4",
+          "title": "Biomes & Aquatic Ecosystems",
+          "match": [
+            "unit 4"
+          ]
+        },
+        {
+          "id": "U3",
+          "title": "Communities & Ecosystems",
+          "match": [
+            "unit 3"
+          ]
+        },
+        {
+          "id": "U5",
+          "title": "Biodiversity",
+          "match": [
+            "unit 5"
+          ]
+        },
+        {
+          "id": "U6",
+          "title": "Human Population",
+          "match": [
+            "unit 6"
+          ]
+        },
+        {
+          "id": "U7",
+          "title": "Atmosphere & Air Pollution",
+          "match": [
+            "unit 7"
+          ]
+        },
+        {
+          "id": "U9",
+          "title": "Renewable Energy",
+          "match": [
+            "unit 9"
+          ]
+        },
+        {
+          "id": "U10",
+          "title": "Non-renewable Energy",
+          "match": [
+            "unit 10"
+          ]
+        },
+        {
+          "id": "EH",
+          "title": "Eco Home Project (juniors)",
+          "match": [
+            "eco home"
+          ]
+        }
+      ],
+      "toolLinks": [
+        {
+          "match": "carrying capacity|population growth",
+          "href": "/tools/carrying-capacity/",
+          "label": "Try the carrying capacity explorer"
+        }
+      ]
+    },
+    {
+      "id": "honors-bio",
+      "enabled": false,
+      "name": "Freshman Honors Biology",
+      "short": "Honors Bio",
+      "color": "heather",
+      "codeLabel": "Standard",
+      "format": "envsci",
+      "sheetCsvUrl": "",
+      "sheetName": "",
+      "blurb": "Freshman Honors Biology.",
+      "units": [],
+      "toolLinks": []
+    }
+  ]
+}

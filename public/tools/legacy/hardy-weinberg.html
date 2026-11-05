@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hardy-Weinberg Equilibrium Calculator</title>
+<style>
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: transparent; 
+    margin: 0; 
+    padding: 10px; 
+    color: #333; 
+    line-height: 1.5;
+  }
+  .calculator-container { 
+    max-width: 650px; 
+    margin: 0 auto; 
+    background: #ffffff; 
+    padding: 25px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    border-top: 6px solid #8e24aa; 
+  }
+  h2 { 
+    color: #2c3e50; 
+    margin-top: 0; 
+    text-align: center; 
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  h3 {
+    color: #6a1b9a;
+    border-bottom: 2px solid #e1bee7;
+    padding-bottom: 5px;
+    margin-top: 30px;
+  }
+  .formula-box { 
+    background: #f3e5f5; 
+    padding: 15px; 
+    border-radius: 6px; 
+    text-align: center; 
+    margin-bottom: 20px; 
+    color: #6a1b9a; 
+  }
+  .formula-box span.equation {
+    font-size: 1.3em;
+    font-weight: bold;
+    display: inline-block;
+    margin: 0 10px;
+    letter-spacing: 1px;
+  }
+  
+  .input-section {
+    background: #fafafa;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #eee;
+    margin-bottom: 15px;
+  }
+  .input-group { margin-bottom: 15px; }
+  .input-group:last-child { margin-bottom: 0; }
+  .input-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #455a64;
+    font-size: 0.95em;
+  }
+  .input-group small {
+    display: block;
+    color: #777;
+    margin-bottom: 5px;
+    font-size: 0.85em;
+  }
+  input[type="number"] { 
+    width: 100%;
+    padding: 10px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    font-size: 16px; 
+    box-sizing: border-box;
+  }
+  input[type="number"]:focus {
+    border-color: #8e24aa;
+    outline: none;
+  }
+  .btn-calc { 
+    background: #8e24aa; 
+    color: white; 
+    padding: 12px 15px; 
+    width: 100%; 
+    font-size: 16px; 
+    font-weight: bold; 
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-calc:hover { background: #6a1b9a; }
+  
+  .result-box { 
+    margin-top: 15px; 
+    padding: 20px; 
+    background: #f5f5f5; 
+    border-radius: 6px; 
+    display: none; 
+    border: 1px solid #e0e0e0;
+  }
+  .genotype-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+    text-align: center;
+  }
+  .genotype-card {
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #d1c4e9;
+  }
+  .geno-title {
+    font-weight: bold;
+    color: #4527a0;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+  }
+  .geno-freq {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+  .geno-pop {
+    margin-top: 5px;
+    font-size: 0.85em;
+    color: #555;
+  }
+
+  /* Specific styles for Equilibrium Checker */
+  .eq-checker-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  .conclusion-box {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+  .conclusion-box.evolving {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+  }
+  .conclusion-box.equilibrium {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+  }
+  .stats-breakdown {
+    background: white;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px dashed #ccc;
+    margin-top: 15px;
+    font-size: 0.9em;
+  }
+  .stats-breakdown p { margin: 5px 0; }
+</style>
+</head>
+<body>
+
+<div class="calculator-container">
+  <h2>Hardy-Weinberg Toolkit</h2>
+  
+  <div class="formula-box">
+    <span class="equation">p + q = 1</span>
+    <span class="equation">p&sup2; + 2pq + q&sup2; = 1</span>
+  </div>
+
+  <h3>Part 1: Predict Genotypes from Alleles</h3>
+  <div class="input-section">
+    <div class="input-group">
+      <label for="p-input">Dominant Allele Frequency (p):</label>
+      <input type="number" id="p-input" min="0" max="1" step="0.01" placeholder="e.g., 0.6">
+    </div>
+    <div class="input-group">
+      <label for="q-input">Recessive Allele Frequency (q):</label>
+      <input type="number" id="q-input" min="0" max="1" step="0.01" placeholder="e.g., 0.4">
+    </div>
+    <div class="input-group">
+      <label for="pop-input">Total Population Size (N) - <em>Optional</em>:</label>
+      <input type="number" id="pop-input" min="1" placeholder="e.g., 500">
+    </div>
+  </div>
+  <button class="btn-calc" onclick="calculateHW()">Calculate Expected Frequencies</button>
+
+  <div class="result-box" id="resultBox">
+    <div class="genotype-grid">
+      <div class="genotype-card">
+        <div class="geno-title">p&sup2; (Dom)</div>
+        <div class="geno-freq" id="p2-result">-</div>
+        <div class="geno-pop" id="p2-pop"></div>
+      </div>
+      <div class="genotype-card">
+        <div class="geno-title">2pq (Het)</div>
+        <div class="geno-freq" id="2pq-result">-</div>
+        <div class="geno-pop" id="2pq-pop"></div>
+      </div>
+      <div class="genotype-card">
+        <div class="geno-title">q&sup2; (Rec)</div>
+        <div class="geno-freq" id="q2-result">-</div>
+        <div class="geno-pop" id="q2-pop"></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Part 2: Check Population Equilibrium</h3>
+  <p style="font-size: 0.9em; color: #555;">Enter your actual observed counts of individuals. The tool will calculate the allele frequencies, determine the expected counts, and run a Chi-Square test (&alpha; = 0.05, critical value = 3.841) to see if the population is evolving.</p>
+  
+  <div class="input-section">
+    <div class="eq-checker-grid">
+      <div class="input-group">
+        <label>Observed AA (p&sup2;)</label>
+        <input type="number" id="obs-dom" min="0" placeholder="Count">
+      </div>
+      <div class="input-group">
+        <label>Observed Aa (2pq)</label>
+        <input type="number" id="obs-het" min="0" placeholder="Count">
+      </div>
+      <div class="input-group">
+        <label>Observed aa (q&sup2;)</label>
+        <input type="number" id="obs-rec" min="0" placeholder="Count">
+      </div>
+    </div>
+    <button class="btn-calc" style="background:#00838f;" onclick="checkEquilibrium()">Run Chi-Square Test</button>
+  </div>
+
+  <div class="result-box" id="eqResultBox">
+    <div id="eqConclusion" class="conclusion-box"></div>
+    
+    <div class="stats-breakdown">
+      <h4 style="margin-top:0; color:#333;">Statistical Breakdown:</h4>
+      <p><strong>Total Population (N):</strong> <span id="eq-N"></span></p>
+      <p><strong>Actual Allele Frequencies:</strong> p = <span id="eq-p"></span>, q = <span id="eq-q"></span></p>
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+      <p><strong>Expected Counts:</strong> AA = <span id="exp-dom"></span> | Aa = <span id="exp-het"></span> | aa = <span id="exp-rec"></span></p>
+      <p><strong>Chi-Square (&chi;&sup2;) Value:</strong> <span id="chi-val" style="font-weight:bold;"></span></p>
+      <p style="font-size: 0.85em; color: #666;"><em>Since p and q were estimated from the data, Degrees of Freedom (df) = 1.</em></p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // --- Part 1 Logic ---
+  const pInput = document.getElementById('p-input');
+  const qInput = document.getElementById('q-input');
+
+  pInput.addEventListener('input', function() {
+    let p = parseFloat(this.value);
+    if (!isNaN(p) && p >= 0 && p <= 1) qInput.value = (1 - p).toFixed(4).replace(/\.?0+$/, '');
+  });
+
+  qInput.addEventListener('input', function() {
+    let q = parseFloat(this.value);
+    if (!isNaN(q) && q >= 0 && q <= 1) pInput.value = (1 - q).toFixed(4).replace(/\.?0+$/, '');
+  });
+
+  function calculateHW() {
+    let p = parseFloat(pInput.value);
+    let q = parseFloat(qInput.value);
+    const popSize = parseInt(document.getElementById('pop-input').value);
+
+    if (isNaN(p) || isNaN(q) || Math.abs((p + q) - 1) > 0.001) {
+      alert("p and q must be between 0 and 1, and sum to 1.");
+      return;
+    }
+
+    const p2 = Math.pow(p, 2);
+    const pq2 = 2 * p * q;
+    const q2 = Math.pow(q, 2);
+
+    document.getElementById('resultBox').style.display = 'block';
+    document.getElementById('p2-result').innerText = p2.toFixed(4).replace(/\.?0+$/, '');
+    document.getElementById('2pq-result').innerText = pq2.toFixed(4).replace(/\.?0+$/, '');
+    document.getElementById('q2-result').innerText = q2.toFixed(4).replace(/\.?0+$/, '');
+
+    if (!isNaN(popSize) && popSize > 0) {
+      document.getElementById('p2-pop').innerHTML = `<strong>${(p2 * popSize).toFixed(1)}</strong> ind.`;
+      document.getElementById('2pq-pop').innerHTML = `<strong>${(pq2 * popSize).toFixed(1)}</strong> ind.`;
+      document.getElementById('q2-pop').innerHTML = `<strong>${(q2 * popSize).toFixed(1)}</strong> ind.`;
+    } else {
+      ['p2-pop', '2pq-pop', 'q2-pop'].forEach(id => document.getElementById(id).innerText = '');
+    }
+  }
+
+  // --- Part 2 Logic ---
+  function checkEquilibrium() {
+    const oDom = parseInt(document.getElementById('obs-dom').value);
+    const oHet = parseInt(document.getElementById('obs-het').value);
+    const oRec = parseInt(document.getElementById('obs-rec').value);
+
+    if (isNaN(oDom) || isNaN(oHet) || isNaN(oRec) || oDom < 0 || oHet < 0 || oRec < 0) {
+      alert("Please enter valid, positive numbers for all three observed counts.");
+      return;
+    }
+
+    const N = oDom + oHet + oRec;
+    if (N === 0) return;
+
+    // Step 1: Calculate actual allele frequencies
+    const totalAlleles = N * 2;
+    const p = ((oDom * 2) + oHet) / totalAlleles;
+    const q = ((oRec * 2) + oHet) / totalAlleles;
+
+    // Step 2: Calculate Expected Counts (N * expected frequencies)
+    const eDom = N * Math.pow(p, 2);
+    const eHet = N * (2 * p * q);
+    const eRec = N * Math.pow(q, 2);
+
+    // Step 3: Calculate Chi-Square
+    let chiSq = 0;
+    if (eDom > 0) chiSq += Math.pow(oDom - eDom, 2) / eDom;
+    if (eHet > 0) chiSq += Math.pow(oHet - eHet, 2) / eHet;
+    if (eRec > 0) chiSq += Math.pow(oRec - eRec, 2) / eRec;
+
+    // Step 4: Display Results
+    document.getElementById('eqResultBox').style.display = 'block';
+    document.getElementById('eq-N').innerText = N;
+    document.getElementById('eq-p').innerText = p.toFixed(3);
+    document.getElementById('eq-q').innerText = q.toFixed(3);
+    
+    document.getElementById('exp-dom').innerText = eDom.toFixed(1);
+    document.getElementById('exp-het').innerText = eHet.toFixed(1);
+    document.getElementById('exp-rec').innerText = eRec.toFixed(1);
+    
+    document.getElementById('chi-val').innerText = chiSq.toFixed(3);
+
+    const conclusionBox = document.getElementById('eqConclusion');
+    // Critical value for df=1 at p=0.05 is 3.841
+    if (chiSq > 3.841) {
+      conclusionBox.className = "conclusion-box evolving";
+      conclusionBox.innerHTML = `Reject Null Hypothesis:<br>Populations is EVOLVING (Not in equilibrium).`;
+    } else {
+      conclusionBox.className = "conclusion-box equilibrium";
+      conclusionBox.innerHTML = `Accept Null Hypothesis:<br>Population is in EQUILIBRIUM.`;
+    }
+  }
+</script>
+
+</body>
+</html>

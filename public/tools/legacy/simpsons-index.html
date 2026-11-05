@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simpson's Diversity Index Calculator</title>
+<style>
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: transparent; 
+    margin: 0; 
+    padding: 10px; 
+    color: #333; 
+  }
+  .calculator-container { 
+    max-width: 550px; 
+    margin: 0 auto; 
+    background: #ffffff; 
+    padding: 25px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    border-top: 6px solid #4CAF50; 
+  }
+  h2 { 
+    color: #2c3e50; 
+    margin-top: 0; 
+    text-align: center; 
+    font-size: 22px;
+  }
+  .formula-box { 
+    background: #e8f5e9; 
+    padding: 20px; 
+    border-radius: 6px; 
+    text-align: center; 
+    margin-bottom: 20px; 
+    color: #2e7d32; 
+  }
+  .formula-box span.equation {
+    font-size: 1.4em;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+  }
+  .definitions {
+    text-align: left;
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #c8e6c9;
+  }
+  .definitions p {
+    margin: 0 0 10px 0;
+    font-weight: bold;
+    color: #388e3c;
+  }
+  .definitions ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+    font-size: 0.9em;
+    color: #444;
+  }
+  .definitions li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .definitions li:last-child {
+    margin-bottom: 0;
+  }
+  .species-list { margin-bottom: 15px; }
+  .species-row { 
+    display: flex; 
+    gap: 10px; 
+    margin-bottom: 10px; 
+    align-items: center; 
+  }
+  input[type="number"] { 
+    flex: 1; 
+    padding: 10px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    font-size: 16px; 
+  }
+  button { 
+    border: none; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-size: 15px; 
+    transition: background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-remove { 
+    background: #e53935; 
+    color: white; 
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .btn-remove:hover { background: #c62828; }
+  .btn-add { 
+    background: #2196F3; 
+    color: white; 
+    padding: 12px 15px; 
+    width: 100%; 
+    margin-bottom: 15px; 
+    font-weight: bold;
+    min-height: 44px;
+  }
+  .btn-add:hover { background: #1976D2; }
+  .btn-calc { 
+    background: #4CAF50; 
+    color: white; 
+    padding: 14px 15px; 
+    width: 100%; 
+    font-size: 18px; 
+    font-weight: bold;
+    min-height: 48px;
+  }
+  .btn-calc:hover { background: #388E3C; }
+  .result-box { 
+    margin-top: 20px; 
+    padding: 15px; 
+    background: #f5f5f5; 
+    border-radius: 6px; 
+    text-align: center; 
+    display: none; 
+    border: 1px solid #e0e0e0;
+  }
+  .result-value { 
+    font-size: 28px; 
+    font-weight: bold; 
+    color: #2c3e50; 
+    margin-top: 5px; 
+  }
+  .breakdown {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 10px;
+    text-align: left;
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px dashed #ccc;
+  }
+  .error-msg {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 15px;
+    display: none;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="calculator-container">
+  <h2>Simpson's Diversity Index</h2>
+  
+  <div class="formula-box">
+    <span class="equation">D = N(N &minus; 1) &divide; &Sigma;n(n &minus; 1)</span>
+    
+    <div class="definitions">
+      <p>Where:</p>
+      <ul>
+        <li><strong>D</strong> = Diversity index (higher = more diverse)</li>
+        <li><strong>N</strong> = Total number of organisms of all species</li>
+        <li><strong>n</strong> = Number of organisms of one particular species</li>
+        <li><strong>&Sigma;</strong> = "Sum of" you calculate n(n&minus;1) for each species and add them all together.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="species-list" id="speciesList">
+    <div class="species-row">
+      <input type="number" class="species-input" min="1" placeholder="Count for Species 1" required>
+      <button class="btn-remove" onclick="removeRow(this)" title="Remove species" aria-label="Remove species 1">&times;</button>
+    </div>
+    <div class="species-row">
+      <input type="number" class="species-input" min="1" placeholder="Count for Species 2" required>
+      <button class="btn-remove" onclick="removeRow(this)" title="Remove species" aria-label="Remove species 2">&times;</button>
+    </div>
+  </div>
+
+  <button class="btn-add" onclick="addSpecies()">+ Add Another Species</button>
+  <button class="btn-calc" onclick="calculateIndex()">Calculate Index (D)</button>
+
+  <div class="result-box" id="resultBox">
+    <div>Diversity Index (D):</div>
+    <div class="result-value" id="finalResult">-</div>
+    <div class="breakdown" id="breakdownText"></div>
+  </div>
+</div>
+
+<script>
+  function showError(msg) {
+    var el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+    clearTimeout(showError._timer);
+    showError._timer = setTimeout(function() { el.style.display = 'none'; }, 5000);
+  }
+
+  function clearError() {
+    document.getElementById('errorMsg').style.display = 'none';
+  }
+
+  function addSpecies() {
+    clearError();
+    var container = document.getElementById('speciesList');
+    var rowCount = container.children.length + 1;
+    
+    var row = document.createElement('div');
+    row.className = 'species-row';
+    
+    var input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'species-input';
+    input.min = '1';
+    input.placeholder = 'Count for Species ' + rowCount;
+
+    var btn = document.createElement('button');
+    btn.className = 'btn-remove';
+    btn.title = 'Remove species';
+    btn.setAttribute('aria-label', 'Remove species ' + rowCount);
+    btn.innerHTML = '&times;';
+    btn.addEventListener('click', function() { removeRow(btn); });
+
+    row.appendChild(input);
+    row.appendChild(btn);
+    container.appendChild(row);
+  }
+
+  function removeRow(button) {
+    clearError();
+    var container = document.getElementById('speciesList');
+    if (container.children.length > 1) {
+      button.parentElement.remove();
+    } else {
+      showError("You need at least one species to calculate.");
+    }
+  }
+
+  function calculateIndex() {
+    clearError();
+    var inputs = document.querySelectorAll('.species-input');
+    var totalN = 0;
+    var sum_n_n_minus_1 = 0;
+    var validInputs = 0;
+
+    for (var i = 0; i < inputs.length; i++) {
+      var n = parseInt(inputs[i].value);
+      if (!isNaN(n) && n > 0) {
+        totalN += n;
+        sum_n_n_minus_1 += n * (n - 1);
+        validInputs++;
+      }
+    }
+
+    var resultBox = document.getElementById('resultBox');
+    var finalResult = document.getElementById('finalResult');
+    var breakdownText = document.getElementById('breakdownText');
+
+    if (validInputs === 0) {
+      showError("Please enter valid organism counts (whole numbers greater than 0).");
+      return;
+    }
+
+    if (totalN <= 1) {
+      showError("Total number of organisms must be greater than 1 to calculate diversity.");
+      return;
+    }
+
+    var numerator = totalN * (totalN - 1);
+    var D = numerator / sum_n_n_minus_1;
+
+    resultBox.style.display = 'block';
+    
+    if (!isFinite(D)) {
+      finalResult.innerHTML = "Undefined";
+      breakdownText.innerHTML = "Cannot divide by zero (Denominator is 0).";
+    } else {
+      finalResult.innerHTML = D.toFixed(3);
+      breakdownText.innerHTML = 
+        '<strong>Calculation Breakdown:</strong><br>' +
+        'Total Organisms (N): ' + totalN + '<br>' +
+        'Numerator [N(N-1)]: ' + numerator + '<br>' +
+        'Denominator [&Sigma;n(n-1)]: ' + sum_n_n_minus_1;
+    }
+  }
+</script>
+
+</body>
+</html>

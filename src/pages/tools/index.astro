@@ -1,0 +1,41 @@
+---
+import Base from '../../layouts/Base.astro';
+import { courseById } from '../../lib/data.js';
+import toolsData from '../../data/tools.json';
+import linksData from '../../data/links.json';
+const enabled = id => id === 'all' || courseById(id)?.enabled;
+const tools = toolsData.tools.filter(t => t.show !== false);
+const links = linksData.links;
+const tagsFor = ids => ids.filter(id => id !== 'all' && enabled(id)).map(id => courseById(id));
+---
+<Base title="Tools & simulations" active="tools">
+  <div class="band"><canvas class="topo" aria-hidden="true"></canvas><div class="wrap">
+    <p class="eyebrow">Field kit</p>
+    <h1>Tools &amp; simulations</h1>
+    <p class="lede">Calculators and models for labs and the IA, plus the outside sites we use most.</p>
+  </div></div>
+  <section class="block" aria-labelledby="t-h"><div class="wrap">
+    <div class="sec-head"><h2 id="t-h">Built for our classes</h2></div>
+    <div class="tool-grid">
+      {tools.map(t => (
+        <article class={`tool-card${t.builtIn ? ' feature' : ''}`}>
+          <h3><a href={`/tools/${t.slug}/`}>{t.title}</a></h3>
+          <p>{t.description}</p>
+          <div class="tags">{tagsFor(t.courses).map(c => <span class={`tag sm c-${c.color}`}>{c.short}</span>)}</div>
+        </article>
+      ))}
+    </div>
+  </div></section>
+  <section class="block" aria-labelledby="l-h"><div class="wrap">
+    <div class="sec-head"><h2 id="l-h">Helpful links</h2><p class="sec-note">These open other websites in a new tab.</p></div>
+    <ul class="links">
+      {links.map(l => (
+        <li><a href={l.url} target="_blank" rel="noopener">
+          <span class="lt">{l.title} <span aria-hidden="true">↗</span></span>
+          <span class="ld">{l.description}<span class="sr-only"> (opens in a new tab)</span></span>
+          <span class="ltags">{tagsFor(l.courses).map(c => <span class={`tag sm c-${c.color}`}>{c.short}</span>)}</span>
+        </a></li>
+      ))}
+    </ul>
+  </div></section>
+</Base>

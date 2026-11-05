@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procedural Punnett Square Simulator</title>
+<style>
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: transparent; 
+    margin: 0; 
+    padding: 10px; 
+    color: #333; 
+    line-height: 1.5;
+  }
+  .calculator-container { 
+    max-width: 700px; 
+    margin: 0 auto; 
+    background: #ffffff; 
+    padding: 25px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    border-top: 6px solid #2e7d32; 
+  }
+  h2 { 
+    color: #1b5e20; 
+    margin-top: 0; 
+    text-align: center; 
+    font-size: 24px;
+  }
+  .instructions {
+    background: #e8f5e9;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+    font-size: 0.95em;
+    text-align: center;
+  }
+  .input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 450px) {
+    .input-grid { grid-template-columns: 1fr; }
+  }
+  .input-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #388e3c;
+  }
+  input[type="text"] { 
+    width: 100%;
+    padding: 12px; 
+    border: 2px solid #a5d6a7; 
+    border-radius: 4px; 
+    font-size: 18px; 
+    box-sizing: border-box;
+    text-align: center;
+    letter-spacing: 3px;
+    font-weight: bold;
+  }
+  input[type="text"]:focus {
+    border-color: #2e7d32;
+    outline: none;
+  }
+  .btn-calc { 
+    background: #43a047; 
+    color: white; 
+    padding: 15px; 
+    width: 100%; 
+    font-size: 18px; 
+    font-weight: bold; 
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .btn-calc:hover { background: #2e7d32; }
+  
+  .error-msg {
+    color: #c62828;
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 15px;
+    display: none;
+  }
+
+  /* --- Simulation Stages --- */
+  .stage-container {
+    margin-top: 30px;
+    display: none;
+  }
+  .stage-header {
+    background: #1b5e20;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+  }
+
+  /* Gamete Formation Styles */
+  .gamete-stage-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 550px) {
+    .gamete-stage-grid { grid-template-columns: 1fr; }
+  }
+  .parent-gametes {
+    background: #f1f8e9;
+    border: 1px solid #c5e1a5;
+    border-radius: 6px;
+    padding: 15px;
+  }
+  .parent-gametes h4 {
+    margin: 0 0 10px 0;
+    color: #33691e;
+    text-align: center;
+    border-bottom: 1px solid #c5e1a5;
+    padding-bottom: 5px;
+  }
+  .gamete-boxes {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .g-box {
+    background: #fff;
+    border: 2px solid #7cb342;
+    color: #33691e;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 1.1em;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .foil-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0 0;
+    font-family: monospace;
+    font-size: 1.1em;
+  }
+  .foil-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    background: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px dashed #aed581;
+  }
+  .foil-letter { font-weight: bold; color: #d84315; }
+
+  /* Punnett Square Table Styles */
+  .punnett-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    table-layout: fixed;
+  }
+  .punnett-table th, .punnett-table td {
+    border: 2px solid #81c784;
+    text-align: center;
+    padding: 15px;
+    font-size: 1.3em;
+  }
+  .punnett-table th {
+    background: #e8f5e9;
+    color: #1b5e20;
+    font-weight: bold;
+  }
+  .punnett-table td {
+    background: #ffffff;
+    font-family: monospace;
+    font-weight: bold;
+    color: #333;
+    transition: background 0.2s;
+  }
+  .punnett-table td:hover { background: #f1f8e9; }
+  .gamete-header { background: #c8e6c9 !important; }
+  
+  /* Ratios Container */
+  .ratios-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  @media (max-width: 550px) {
+    .ratios-container { grid-template-columns: 1fr; }
+  }
+  .ratio-box {
+    background: #fafafa;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+  }
+  .ratio-box h4 {
+    margin: 0 0 10px 0;
+    color: #2e7d32;
+    border-bottom: 2px solid #c8e6c9;
+    padding-bottom: 5px;
+  }
+  .ratio-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.95em;
+  }
+  .ratio-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed #ccc;
+  }
+  .ratio-list li:last-child { border: none; }
+</style>
+</head>
+<body>
+
+<div class="calculator-container">
+  <h2>Genetics Procedural Simulator</h2>
+  
+  <div class="instructions">
+    Predict gametes and offspring for Mendelian crosses.<br>
+    <strong>Monohybrid:</strong> 2 letters per parent (e.g., <code>Aa</code> & <code>aa</code>)<br>
+    <strong>Dihybrid:</strong> 4 letters per parent (e.g., <code>AaBb</code> & <code>AaBb</code>)
+  </div>
+
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="p1">Parent 1 Genotype:</label>
+      <input type="text" id="p1" placeholder="AaBb" maxlength="4">
+    </div>
+    <div class="input-group">
+      <label for="p2">Parent 2 Genotype:</label>
+      <input type="text" id="p2" placeholder="AaBb" maxlength="4">
+    </div>
+  </div>
+
+  <button class="btn-calc" onclick="runSimulation()">Run Simulation</button>
+  <div id="errorMsg" class="error-msg"></div>
+
+  <div id="simulationStage" class="stage-container">
+    
+    <div class="stage-header">Step 1: Gamete Formation (Meiosis)</div>
+    <div class="gamete-stage-grid" id="gameteFormationStage"></div>
+
+    <div class="stage-header">Step 2: Fertilization (Punnett Square)</div>
+    <div id="tableContainer"></div>
+    
+    <div class="stage-header">Step 3: Offspring Analysis</div>
+    <div class="ratios-container">
+      <div class="ratio-box">
+        <h4>Genotypic Frequencies</h4>
+        <ul class="ratio-list" id="genoList"></ul>
+      </div>
+      <div class="ratio-box">
+        <h4>Phenotypic Probabilities</h4>
+        <ul class="ratio-list" id="phenoList"></ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function getGametes(g) {
+    if (g.length === 2) {
+      return [g[0], g[1]];
+    } else if (g.length === 4) {
+      return [
+        g[0] + g[2], // First
+        g[0] + g[3], // Outer
+        g[1] + g[2], // Inner
+        g[1] + g[3]  // Last
+      ];
+    }
+    return [];
+  }
+
+  function sortAlleles(gamete1, gamete2) {
+    const combined = gamete1 + gamete2;
+    if (combined.length === 2) {
+      // Aa
+      return combined.split('').sort((a,b) => a.toLowerCase() === b.toLowerCase() ? (a < b ? -1 : 1) : 0).join('');
+    } else if (combined.length === 4) {
+      // AaBb
+      const gene1 = [combined[0], combined[2]].sort((a,b) => a.toLowerCase() === b.toLowerCase() ? (a < b ? -1 : 1) : 0).join('');
+      const gene2 = [combined[1], combined[3]].sort((a,b) => a.toLowerCase() === b.toLowerCase() ? (a < b ? -1 : 1) : 0).join('');
+      return gene1 + gene2;
+    }
+  }
+
+  function determinePhenotype(genotype) {
+    if (genotype.length === 2) {
+      return /[A-Z]/.test(genotype) ? "Dominant Trait" : "Recessive Trait";
+    } else if (genotype.length === 4) {
+      const gene1 = genotype.substring(0, 2);
+      const gene2 = genotype.substring(2, 4);
+      const dom1 = /[A-Z]/.test(gene1) ? "Dom" : "Rec";
+      const dom2 = /[A-Z]/.test(gene2) ? "Dom" : "Rec";
+      return `${dom1} 1 / ${dom2} 2`;
+    }
+  }
+
+  // Visual Renderer for Gamete Step
+  function renderGameteHTML(parentNum, genotype, gametes) {
+    let html = `<div class="parent-gametes"><h4>Parent ${parentNum} <br><code>${genotype}</code></h4>`;
+    if (genotype.length === 2) {
+      html += `<div style="text-align:center; font-size:0.9em; margin-bottom:5px;">Law of Segregation</div>
+               <div class="gamete-boxes">
+                 <span class="g-box">${gametes[0]}</span>
+                 <span class="g-box">${gametes[1]}</span>
+               </div>`;
+    } else {
+      html += `<div style="text-align:center; font-size:0.9em; margin-bottom:5px;">Independent Assortment (FOIL)</div>
+               <ul class="foil-list">
+                 <li><span class="foil-letter">F</span>irst: ${genotype[0]} + ${genotype[2]} &rarr; <span class="g-box">${gametes[0]}</span></li>
+                 <li><span class="foil-letter">O</span>uter: ${genotype[0]} + ${genotype[3]} &rarr; <span class="g-box">${gametes[1]}</span></li>
+                 <li><span class="foil-letter">I</span>nner: ${genotype[1]} + ${genotype[2]} &rarr; <span class="g-box">${gametes[2]}</span></li>
+                 <li><span class="foil-letter">L</span>ast: ${genotype[1]} + ${genotype[3]} &rarr; <span class="g-box">${gametes[3]}</span></li>
+               </ul>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  function runSimulation() {
+    let p1 = document.getElementById('p1').value.trim();
+    let p2 = document.getElementById('p2').value.trim();
+    const errorMsg = document.getElementById('errorMsg');
+    const simulationStage = document.getElementById('simulationStage');
+
+    // Reset UI
+    errorMsg.style.display = 'none';
+    simulationStage.style.display = 'none';
+
+    // Strict Validation
+    if (!/^[a-zA-Z]+$/.test(p1) || !/^[a-zA-Z]+$/.test(p2)) {
+      errorMsg.innerText = "Error: Please use only letters.";
+      errorMsg.style.display = 'block';
+      return;
+    }
+    if ((p1.length !== 2 && p1.length !== 4) || (p2.length !== 2 && p2.length !== 4)) {
+      errorMsg.innerText = "Error: Genotypes must be exactly 2 letters (monohybrid) or 4 letters (dihybrid).";
+      errorMsg.style.display = 'block';
+      return;
+    }
+    if (p1.length !== p2.length) {
+      errorMsg.innerText = "Error: Both parents must be either monohybrid (2 letters) or dihybrid (4 letters).";
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    const g1 = getGametes(p1);
+    const g2 = getGametes(p2);
+    
+    // --- Render Step 1: Gametes ---
+    const gameteStage = document.getElementById('gameteFormationStage');
+    gameteStage.innerHTML = renderGameteHTML(1, p1, g1) + renderGameteHTML(2, p2, g2);
+
+    // --- Render Step 2: Punnett Table ---
+    let genotypicCounts = {};
+    let phenotypicCounts = {};
+    let totalOffspring = g1.length * g2.length;
+
+    let tableHtml = '<table class="punnett-table"><tr><th style="background:#fff; border:none;"></th>';
+    g1.forEach(gamete => { tableHtml += `<th class="gamete-header">${gamete}</th>`; });
+    tableHtml += '</tr>';
+
+    g2.forEach(gameteY => {
+      tableHtml += `<tr><th class="gamete-header">${gameteY}</th>`;
+      g1.forEach(gameteX => {
+        const offspring = sortAlleles(gameteX, gameteY);
+        const phenotype = determinePhenotype(offspring);
+        tableHtml += `<td>${offspring}</td>`;
+        
+        genotypicCounts[offspring] = (genotypicCounts[offspring] || 0) + 1;
+        phenotypicCounts[phenotype] = (phenotypicCounts[phenotype] || 0) + 1;
+      });
+      tableHtml += '</tr>';
+    });
+    tableHtml += '</table>';
+    document.getElementById('tableContainer').innerHTML = tableHtml;
+
+    // --- Render Step 3: Analysis ---
+    const genoList = document.getElementById('genoList');
+    genoList.innerHTML = '';
+    for (let [geno, count] of Object.entries(genotypicCounts).sort()) {
+      const percentage = ((count / totalOffspring) * 100).toFixed(1);
+      genoList.innerHTML += `<li><strong>${geno}</strong> <span>${count}/${totalOffspring} (${percentage}%)</span></li>`;
+    }
+
+    const phenoList = document.getElementById('phenoList');
+    phenoList.innerHTML = '';
+    for (let [pheno, count] of Object.entries(phenotypicCounts).sort()) {
+      const percentage = ((count / totalOffspring) * 100).toFixed(1);
+      phenoList.innerHTML += `<li><strong>${pheno}</strong> <span>${count}/${totalOffspring} (${percentage}%)</span></li>`;
+    }
+
+    // Reveal Simulation
+    simulationStage.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>

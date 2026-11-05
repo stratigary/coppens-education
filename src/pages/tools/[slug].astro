@@ -1,0 +1,22 @@
+---
+import Base from '../../layouts/Base.astro';
+import { courseById } from '../../lib/data.js';
+import toolsData from '../../data/tools.json';
+export function getStaticPaths() {
+  return toolsData.tools.filter(t => !t.builtIn && t.file).map(t => ({ params: { slug: t.slug }, props: { t } }));
+}
+const { t } = Astro.props;
+const tags = t.courses.map(id => courseById(id)).filter(c => c?.enabled);
+---
+<Base title={t.title} active="tools" description={t.description}>
+  <div class="band"><canvas class="topo" aria-hidden="true" data-seed={t.slug}></canvas><div class="wrap">
+    <p class="eyebrow"><a href="/tools/">Tools</a></p>
+    <h1>{t.title}</h1>
+    <p class="lede">{t.description}</p>
+    <div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap">{tags.map(c => <span class={`tag sm c-${c.color}`}>{c.short}</span>)}</div>
+  </div></div>
+  <section class="block"><div class="wrap">
+    <div class="frame-wrap"><iframe src={t.file} title={t.title} loading="lazy"></iframe></div>
+    <p class="data-status"><a href={t.file} target="_blank" rel="noopener">Open the tool on its own page<span class="sr-only"> (opens in a new tab)</span></a></p>
+  </div></section>
+</Base>

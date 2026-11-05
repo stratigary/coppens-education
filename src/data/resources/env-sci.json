@@ -1,0 +1,165 @@
+{
+  "course": "env-sci",
+  "units": [
+    {
+      "unit": "course",
+      "items": [
+        {
+          "title": "2025-2026 Environmental Science Policies",
+          "url": "https://drive.google.com/open?id=1_Rq1G-e7ChxM2d0bFh_NksrcsBqzsoTg2IGpUAxK4og",
+          "kind": "Doc"
+        }
+      ]
+    },
+    {
+      "unit": "U1",
+      "items": [
+        {
+          "title": "Unit 1 PowerPoint (F)",
+          "url": "https://docs.google.com/presentation/d/1vhuHmOSgPjPv9w1IKpcYFH-pBCN1Vdmmy4OEks8Bi-c/edit",
+          "kind": "Slides"
+        },
+        {
+          "title": "Unit 1 Notes (F)",
+          "url": "https://drive.google.com/open?id=1yR6F1HcctVBCYiT5tnD041KOQAQEvE0q",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "unit": "U2",
+      "items": [
+        {
+          "title": "Unit 2 PowerPoint (F)",
+          "url": "https://docs.google.com/presentation/d/1fK1lEiBm3uDi78kL0YMsHHM0d5MrFRP_6HtMvY12eTc/edit",
+          "kind": "Slides"
+        },
+        {
+          "title": "Unit 2 Notes (F)",
+          "url": "https://drive.google.com/open?id=1nh6S0RjFx8orkv7ms7STtmnAhKBIxgYL",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "unit": "U3",
+      "items": [
+        {
+          "title": "Unit 3 PowerPoint (F)",
+          "url": "https://docs.google.com/presentation/d/10PFghEKIKMBfb0CEcNaNs0sUey4kKovhlwaFKFkAKsg/edit",
+          "kind": "Slides"
+        },
+        {
+          "title": "Unit 3 Notes (F)",
+          "url": "https://drive.google.com/open?id=1g4JT3qMIAI7g2YJTxBrl4Pgc-IoVlZi4",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "unit": "U4",
+      "items": [
+        {
+          "title": "Unit 4 PowerPoint (F)",
+          "url": "https://docs.google.com/presentation/d/1aNXdZW5GqEgpIpx5cJ3KR85jRhyYmWOZKLw3vvKa1Tk/edit",
+          "kind": "Slides"
+        },
+        {
+          "title": "Unit 4 Notes (F)",
+          "url": "https://drive.google.com/open?id=1H9wesIfWVaUtYMib8wXp38c4sywwP370",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "unit": "U5",
+      "items": [
+        {
+          "title": "Unit 5 Notes (F)",
+          "url": "https://drive.google.com/open?id=1blne8Jb6ItMOv-4RCJF9lsjfl-Qd0mrn",
+          "kind": "PDF"
+        },
+        {
+          "title": "Unit 5 PowerPoint (F)",
+          "url": "https://docs.google.com/presentation/d/1t4csCer9KOxbT3tkGzLzJVH7MG1HT-co-6FjEhLoI2o/edit",
+          "kind": "Slides"
+        }
+      ]
+    },
+    {
+      "unit": "U6",
+      "items": [
+        {
+          "title": "Unit 6 Notes (F)",
+          "url": "https://drive.google.com/open?id=1HtfVJt0xw-zyyVQZ6-A9HWEGIrgYvQQo",
+          "kind": "PDF"
+        },
+        {
+          "title": "Unit 6 PowerPoint (F)",
+          "url": "https://docs.google.com/presentation/d/11RwD9nTOjvdevc8-qhfoFk2TJteDT8sMRlgii32rAe8/edit",
+          "kind": "Slides"
+        }
+      ]
+    },
+    {
+      "unit": "U7",
+      "items": [
+        {
+          "title": "Unit 7 Notes (F)",
+          "url": "https://drive.google.com/open?id=1lmrf0C2HWzYB0QqN2L_b8K81hMhWTYVq",
+          "kind": "PDF"
+        },
+        {
+          "title": "Unit 7 PowerPoint (F)",
+          "url": "https://docs.google.com/presentation/d/1x7Mx87B-agGCoyhWim3HZgji6RbR0O7j_JMgA6W28kA/edit",
+          "kind": "Slides"
+        }
+      ]
+    },
+    {
+      "unit": "U8",
+      "items": [
+        {
+          "title": "Unit 8 Notes (F)",
+          "url": "https://drive.google.com/open?id=13I_aLibYAu98KUBrhdwkXi9HOpmY5Vvl",
+          "kind": "PDF"
+        },
+        {
+          "title": "Unit 8 PowerPoint (F)",
+          "url": "https://docs.google.com/presentation/d/18fS8wY69JKc1lc3r8DXZ28VyoWyW0BKb1wBdTsraFlQ/edit",
+          "kind": "Slides"
+        }
+      ]
+    },
+    {
+      "unit": "U9",
+      "items": [
+        {
+          "title": "Unit 13 PowerPoint (F)",
+          "url": "https://docs.google.com/presentation/d/1SYhVdZRTou5Bo5nbpQD7Vg31dFk63OZIgHcahN-Wc_4/edit",
+          "kind": "Slides"
+        },
+        {
+          "title": "Unit 13 Notes (F)",
+          "url": "https://drive.google.com/open?id=14YMRjvvUz28kYAbcf66S4wQ089da-kXi",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "unit": "U10",
+      "items": [
+        {
+          "title": "Unit 12 Notes (F)",
+          "url": "https://drive.google.com/open?id=1z0W2JYHUFoMSl4qV49HJtpl6WO-edYY2",
+          "kind": "PDF"
+        },
+        {
+          "title": "Unit 12 PowerPoint (F)",
+          "url": "https://docs.google.com/presentation/d/1CXPNYjdzqL_K7DeVzPDI--Rxa0i1chvKBz88kvCIj7w/edit",
+          "kind": "Slides"
+        }
+      ]
+    }
+  ]
+}

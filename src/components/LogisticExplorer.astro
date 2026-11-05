@@ -1,0 +1,84 @@
+---
+// Built-in carrying-capacity (logistic growth) explorer.
+// The canvas is decorative for screen readers; the live readout and the data table carry the same information.
+---
+<div class="sim c-river" data-sim>
+  <p class="eq" aria-label="Logistic growth: d N over d t equals r N times 1 minus N over K">dN/dt = rN (1 − N/K)</p>
+  <canvas aria-hidden="true"></canvas>
+  <ul class="legend" aria-label="Graph key">
+    <li><b aria-hidden="true"></b>Logistic growth</li>
+    <li><b class="dash" aria-hidden="true"></b>Exponential (no limit)</li>
+    <li><b class="k" aria-hidden="true"></b>Carrying capacity K</li>
+  </ul>
+  <div class="sliders">
+    <label>Growth rate r <output data-o="r"></output><input data-in="r" type="range" min="0.1" max="1" step="0.05" value="0.35" /></label>
+    <label>Carrying capacity K <output data-o="k"></output><input data-in="k" type="range" min="100" max="1000" step="50" value="500" /></label>
+    <label>Starting size N₀ <output data-o="n0"></output><input data-in="n0" type="range" min="5" max="200" step="5" value="10" /></label>
+  </div>
+  <p class="readout" data-readout aria-live="polite"></p>
+  <details class="data">
+    <summary>Show the numbers as a table</summary>
+    <table class="sim-table">
+      <caption class="sr-only">Population size by generation</caption>
+      <thead><tr><th scope="col">Generation</th><th scope="col">Logistic N</th><th scope="col">Exponential N</th></tr></thead>
+      <tbody data-table></tbody>
+    </table>
+  </details>
+</div>
+<script>
+  const niceStep = x => { const p = 10 ** Math.floor(Math.log10(x)), m = x / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; };
+  document.querySelectorAll('[data-sim]').forEach(root => {
+    const cv = root.querySelector('canvas');
+    const inp = k => root.querySelector(`[data-in="${k}"]`);
+    let tm;
+    function draw() {
+      const r = +inp('r').value, K = +inp('k').value, N0 = Math.min(+inp('n0').value, K - 1);
+      root.querySelector('[data-o="r"]').textContent = r.toFixed(2);
+      root.querySelector('[data-o="k"]').textContent = String(K);
+      root.querySelector('[data-o="n0"]').textContent = String(N0);
+      const box = cv.getBoundingClientRect(); if (!box.width) return;
+      const dpr = Math.min(2, devicePixelRatio || 1);
+      cv.width = Math.round(box.width * dpr); cv.height = Math.round(box.height * dpr);
+      const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, box.width, box.height);
+      const cs = getComputedStyle(document.documentElement), col = n => cs.getPropertyValue(n).trim();
+      const pad = { l: 58, r: 12, t: 12, b: 40 }, W = box.width - pad.l - pad.r, H = box.height - pad.t - pad.b;
+      const T = 40, yMax = Math.ceil(K * 1.6 / niceStep(K * 1.6 / 4)) * niceStep(K * 1.6 / 4);
+      const X = t => pad.l + t / T * W, Y = n => pad.t + H - (Math.min(n, yMax) / yMax) * H;
+      ctx.font = '500 12px "DM Mono", ui-monospace, monospace'; ctx.fillStyle = col('--muted'); ctx.strokeStyle = col('--line'); ctx.lineWidth = 1;
+      const ys = niceStep(yMax / 4);
+      for (let v = 0; v <= yMax + .1; v += ys) { ctx.beginPath(); ctx.moveTo(pad.l, Y(v)); ctx.lineTo(pad.l + W, Y(v)); ctx.stroke(); ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText(String(v), pad.l - 8, Y(v)); }
+      for (let t = 0; t <= T; t += 10) { ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(String(t), X(t), pad.t + H + 6); }
+      ctx.fillText('Time (generations)', pad.l + W / 2, pad.t + H + 22);
+      ctx.save(); ctx.translate(12, pad.t + H / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = 'middle'; ctx.fillText('Population N', 0, 0); ctx.restore();
+      ctx.setLineDash([2, 4]); ctx.strokeStyle = col('--prairie'); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(pad.l, Y(K)); ctx.lineTo(pad.l + W, Y(K)); ctx.stroke();
+      ctx.setLineDash([]); ctx.fillStyle = col('--prairie'); ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText('K = ' + K, pad.l + 6, Y(K) - 4);
+      ctx.save(); ctx.beginPath(); ctx.rect(pad.l, pad.t, W, H); ctx.clip();
+      ctx.setLineDash([6, 5]); ctx.strokeStyle = col('--muted'); ctx.lineWidth = 2; ctx.beginPath();
+      for (let t = 0; t <= T; t += .2) { const n = N0 * Math.exp(r * t); t === 0 ? ctx.moveTo(X(t), Y(n)) : ctx.lineTo(X(t), Y(n)); if (n > yMax) break; }
+      ctx.stroke(); ctx.setLineDash([]);
+      const L = t => K / (1 + ((K - N0) / N0) * Math.exp(-r * t));
+      ctx.strokeStyle = col('--river'); ctx.lineWidth = 3; ctx.beginPath();
+      for (let t = 0; t <= T; t += .2) t === 0 ? ctx.moveTo(X(t), Y(L(t))) : ctx.lineTo(X(t), Y(L(t)));
+      ctx.stroke(); ctx.restore();
+      const tStar = Math.log((K - N0) / N0) / r;
+      if (N0 < K / 2 && tStar <= T) { ctx.fillStyle = col('--pollen'); ctx.strokeStyle = col('--ink'); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(X(tStar), Y(K / 2), 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+      const ro = root.querySelector('[data-readout]');
+      clearTimeout(tm);
+      tm = setTimeout(() => {
+        ro.textContent = N0 < K / 2
+          ? `With r = ${r.toFixed(2)}, K = ${K} and N₀ = ${N0}: growth is fastest at N = K/2 = ${K / 2}, around generation ${tStar.toFixed(1)} (the yellow dot). After that, limiting factors slow growth as N approaches K. By generation 20, N ≈ ${Math.round(L(20))}.`
+          : `N₀ starts at or above K/2, so growth only slows from here as the population approaches K = ${K}.`;
+      }, 250);
+      root.querySelector('[data-table]').innerHTML = [0, 5, 10, 15, 20, 25, 30, 35, 40].map(t => {
+        const e = N0 * Math.exp(r * t);
+        return `<tr><td>${t}</td><td>${Math.round(L(t))}</td><td>${e > 1e6 ? 'over 1,000,000' : Math.round(e).toLocaleString()}</td></tr>`;
+      }).join('');
+    }
+    root.querySelectorAll('input').forEach(i => i.addEventListener('input', draw));
+    let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(draw, 120); });
+    new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+    document.fonts?.ready.then(draw);
+    draw();
+  });
+</script>

@@ -1,0 +1,34 @@
+{
+  "books": [
+    {
+      "course": "apes",
+      "title": "Environmental Science for the AP® Course",
+      "edition": "4th edition",
+      "authors": "Friedland & Relyea",
+      "note": "Modules line up with the AP topics in the calendar. The alignment sheet on the APES page shows which module goes with which topic.",
+      "url": "https://drive.google.com/file/d/1lP6enAAio9RBToRV6mlvO-SMtcBldGfk/view",
+      "show": true,
+      "rarelyUsed": false
+    },
+    {
+      "course": "ib-bio",
+      "title": "Biology Course Companion",
+      "edition": "IB Diploma Programme, Oxford",
+      "authors": "Oxford University Press",
+      "note": "Page numbers in the calendar (for example, DBQ pg. 550) refer to this book.",
+      "url": "https://drive.google.com/file/d/1fvQ_rDsmZEoN43NEa8iCPO_ZDYK3AJos/view",
+      "show": true,
+      "rarelyUsed": false
+    },
+    {
+      "course": "env-sci",
+      "title": "Your World, Your Turn",
+      "edition": "",
+      "authors": "",
+      "note": "We mostly work from class notes and packets. The book is here for reference.",
+      "url": "",
+      "show": true,
+      "rarelyUsed": true
+    }
+  ]
+}

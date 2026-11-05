@@ -1,0 +1,670 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Enzyme Lab</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (CDN for standalone HTML) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Custom scrollbar styling */
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background-color: #334155; border-radius: 20px; }
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #ffffff; cursor: pointer; border: 2px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        input[type=range]::-moz-range-thumb { height: 16px; width: 16px; border-radius: 50%; background: #ffffff; cursor: pointer; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen bg-slate-50 font-sans overflow-hidden text-slate-800">
+
+    <!-- SIDEBAR CONFIGURATION -->
+    <aside class="relative w-full md:w-80 bg-slate-900 text-slate-100 flex flex-col h-auto md:h-screen shadow-2xl z-10 shrink-0 overflow-hidden">
+        <!-- Dynamic Background Glow -->
+        <div id="themeGlow" class="absolute top-0 left-0 w-full h-64 bg-gradient-to-br from-rose-500 to-pink-600 opacity-10 pointer-events-none transition-all duration-700 blur-2xl"></div>
+
+        <div class="p-6 border-b border-slate-800/60 flex items-center gap-3 relative z-10">
+            <i data-lucide="flask-conical" id="themeIcon" class="w-8 h-8 text-rose-400 transition-colors duration-500"></i>
+            <h1 class="text-xl font-bold tracking-tight">Virtual Enzyme Lab</h1>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6 space-y-8 relative z-10 scrollbar-thin">
+            <div class="space-y-5">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="settings-2" class="w-4 h-4"></i> Setup Parameters
+                </h2>
+
+                <!-- Enzyme Selection -->
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-300">Enzyme / Substrate Pair</label>
+                    <select id="enzymeSelect" class="w-full bg-slate-950/50 border border-slate-700 rounded-lg py-2.5 px-3 text-sm focus:ring-2 focus:ring-slate-500 focus:border-slate-500 focus:outline-none transition-all text-slate-200">
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+
+                <!-- Sliders -->
+                <div class="space-y-1.5 group">
+                    <div class="flex justify-between text-sm">
+                        <label class="font-medium text-slate-300 group-hover:text-slate-200 transition-colors">Number of Trials</label>
+                        <span id="numTrialsDisplay" class="font-mono text-rose-400 transition-colors duration-500">5</span>
+                    </div>
+                    <input type="range" id="numTrialsSlider" min="1" max="10" step="1" value="5" class="w-full h-1.5 bg-slate-700 rounded-lg outline-none">
+                </div>
+
+                <div class="space-y-1.5 group">
+                    <div class="flex justify-between text-sm">
+                        <label class="font-medium text-slate-300 group-hover:text-slate-200 transition-colors">Temperature (°C)</label>
+                        <span id="tempDisplay" class="font-mono text-rose-400 transition-colors duration-500">37°C</span>
+                    </div>
+                    <input type="range" id="tempSlider" min="0" max="100" step="1" value="37" class="w-full h-1.5 bg-slate-700 rounded-lg outline-none">
+                </div>
+
+                <div class="space-y-1.5 group">
+                    <div class="flex justify-between text-sm">
+                        <label class="font-medium text-slate-300 group-hover:text-slate-200 transition-colors">pH Level</label>
+                        <span id="phDisplay" class="font-mono text-rose-400 transition-colors duration-500">7</span>
+                    </div>
+                    <input type="range" id="phSlider" min="1" max="14" step="0.5" value="7" class="w-full h-1.5 bg-slate-700 rounded-lg outline-none">
+                </div>
+
+                <div class="space-y-1.5 group">
+                    <div class="flex justify-between text-sm">
+                        <label class="font-medium text-slate-300 group-hover:text-slate-200 transition-colors">Enzyme Conc. (AU)</label>
+                        <span id="eConcDisplay" class="font-mono text-rose-400 transition-colors duration-500">50</span>
+                    </div>
+                    <input type="range" id="eConcSlider" min="0" max="100" step="5" value="50" class="w-full h-1.5 bg-slate-700 rounded-lg outline-none">
+                </div>
+
+                <div class="space-y-1.5 group">
+                    <div class="flex justify-between text-sm">
+                        <label class="font-medium text-slate-300 group-hover:text-slate-200 transition-colors">Substrate Conc. (mM)</label>
+                        <span id="sConcDisplay" class="font-mono text-rose-400 transition-colors duration-500">50</span>
+                    </div>
+                    <input type="range" id="sConcSlider" min="0" max="100" step="5" value="50" class="w-full h-1.5 bg-slate-700 rounded-lg outline-none">
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 border-t border-slate-800/80 bg-slate-950/50 space-y-3 relative z-10">
+            <button id="runBtn" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-rose-500 to-pink-600 hover:brightness-110 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 shadow-lg shadow-rose-500/20 transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                <i data-lucide="play" class="w-5 h-5 fill-current" id="runIcon"></i>
+                <span id="runText">Run Experiment</span>
+            </button>
+            <button id="resetBtn" class="w-full flex items-center justify-center gap-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white py-3 px-4 rounded-xl font-medium transition-colors border border-slate-700/50">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                Reset Lab
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN DASHBOARD -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 w-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-100 via-slate-50 to-slate-100 relative">
+        <div class="max-w-6xl mx-auto space-y-6">
+            
+            <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200/60">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="activity" class="w-6 h-6 text-slate-700"></i>
+                        Experimental Results Dashboard
+                    </h2>
+                    <p class="text-slate-500 text-sm mt-1">Review your collected kinetic data and visualizations.</p>
+                </div>
+                <button id="downloadBtn" class="hidden items-center gap-2 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 text-slate-700 py-2.5 px-4 rounded-xl text-sm font-medium transition-all shadow-sm active:scale-95">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Download CSV
+                </button>
+            </header>
+
+            <!-- EMPTY STATE -->
+            <div id="emptyState" class="flex flex-col items-center justify-center py-20 mt-10 text-center border-2 border-dashed border-slate-300 rounded-3xl bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-500">
+                <svg viewBox="0 0 200 150" class="w-64 h-auto drop-shadow-xl mb-6" fill="none">
+                    <rect x="0" y="0" width="200" height="150" fill="url(#grid)" class="opacity-20" />
+                    <defs>
+                        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#94a3b8" stroke-width="0.5"/>
+                        </pattern>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2" />
+                            <stop offset="100%" stop-color="#10b981" stop-opacity="0.2" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="20" y="30" width="100" height="80" rx="8" fill="white" stroke="#cbd5e1" stroke-width="2" />
+                    <path d="M 30 90 L 50 60 L 70 70 L 100 40" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="50" cy="60" r="3" fill="#3b82f6" />
+                    <circle cx="70" cy="70" r="3" fill="#3b82f6" />
+                    <circle cx="100" cy="40" r="3" fill="#3b82f6" />
+                    <path d="M 120 40 L 120 80 C 120 100, 160 100, 160 80 L 160 40 Z" fill="url(#grad1)" stroke="#0f172a" stroke-width="3" stroke-linejoin="round" />
+                    <ellipse cx="140" cy="40" rx="20" ry="5" fill="white" stroke="#0f172a" stroke-width="3" />
+                    <path d="M 125 70 C 135 75, 145 65, 155 70 L 155 80 C 155 95, 125 95, 125 80 Z" fill="#10b981" opacity="0.6" />
+                    <circle cx="135" cy="55" r="4" fill="white" opacity="0.8" />
+                    <circle cx="148" cy="65" r="2.5" fill="white" opacity="0.8" />
+                    <circle cx="142" cy="48" r="3" fill="white" opacity="0.8" />
+                </svg>
+                <h3 class="text-xl font-bold text-slate-800">No Data Collected Yet</h3>
+                <p class="text-slate-500 max-w-md mt-3 text-sm leading-relaxed">
+                    Configure your experimental parameters in the sidebar—including Temperature, pH, and concentrations—then click <strong>Run Experiment</strong> to simulate biological reactions and generate data.
+                </p>
+            </div>
+
+            <!-- RESULTS AREA -->
+            <div id="resultsArea" class="hidden space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                
+                <!-- Data Table -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-200 bg-slate-50/80 flex items-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-5 h-5 text-slate-600"></i>
+                        <h3 class="font-semibold text-slate-800">Raw Data Log</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left whitespace-nowrap">
+                            <thead class="bg-slate-50 text-slate-600 uppercase text-xs" id="tableHead">
+                                <!-- Generated dynamically -->
+                            </thead>
+                            <tbody class="divide-y divide-slate-100" id="tableBody">
+                                <!-- Generated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Visualization -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col relative">
+                    <div class="flex justify-end items-center gap-3 mb-2 pr-4 z-10 absolute right-4 top-4">
+                        <select id="xAxisSelect" class="text-sm bg-slate-50 border border-slate-200 rounded-md px-3 py-1.5 text-slate-700 font-medium outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all shadow-sm">
+                            <option value="id">Graph X-Axis: Experiment Timeline</option>
+                            <option value="temp">Graph X-Axis: Temperature</option>
+                            <option value="ph">Graph X-Axis: pH Level</option>
+                            <option value="sConc">Graph X-Axis: Substrate Conc.</option>
+                            <option value="eConc">Graph X-Axis: Enzyme Conc.</option>
+                        </select>
+                        <button id="downloadGraphBtn" class="flex items-center gap-2 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 text-slate-700 py-1.5 px-3 rounded-md text-sm font-medium transition-all shadow-sm active:scale-95" title="Download Graph as PNG">
+                            <i data-lucide="image" class="w-4 h-4 text-slate-500"></i>
+                            Save Graph
+                        </button>
+                    </div>
+                    <div id="plotlyChart" class="w-full h-[400px]"></div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- APPLICATION LOGIC -->
+    <script>
+        // --- BIOLOGICAL CONSTANTS & DATA ---
+        const ENZYMES = {
+            catalase: { id: 'catalase', name: 'Catalase / Hydrogen Peroxide', optTemp: 37, optPh: 7, km: 25, color: 'from-rose-500 to-pink-600', shadow: 'shadow-rose-500/20', accent: 'text-rose-400' },
+            pepsin: { id: 'pepsin', name: 'Pepsin / Protein', optTemp: 37, optPh: 2, km: 15, color: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/20', accent: 'text-amber-400' },
+            amylase: { id: 'amylase', name: 'Salivary Amylase / Starch', optTemp: 37, optPh: 7, km: 20, color: 'from-yellow-400 to-amber-500', shadow: 'shadow-yellow-500/20', accent: 'text-yellow-400' },
+            taq: { id: 'taq', name: 'Taq Polymerase / DNA', optTemp: 72, optPh: 8, km: 10, color: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/20', accent: 'text-violet-400' }
+        };
+
+        // --- STATE ---
+        let state = {
+            enzyme: 'catalase',
+            numTrials: 5,
+            temp: 37,
+            ph: 7,
+            eConc: 50,
+            sConc: 50,
+            history: [],
+            isSimulating: false,
+            xAxisMode: 'id'
+        };
+
+        let simulationIntervalRef = null;
+
+        // --- MATH LOGIC ---
+        const calculateTheoreticalRate = (enzymeId, temp, ph, eConc, sConc) => {
+            const enzyme = ENZYMES[enzymeId];
+            if (!enzyme) return 0;
+
+            const vmax = eConc * 2.5; 
+            const rateMM = (vmax * sConc) / (enzyme.km + sConc);
+            const phFactor = Math.exp(-Math.pow(ph - enzyme.optPh, 2) / (2 * Math.pow(1.2, 2)));
+
+            let tempFactor = 0;
+            if (temp <= enzyme.optTemp) {
+                tempFactor = Math.pow(2.0, (temp - enzyme.optTemp) / 10);
+            } else {
+                tempFactor = Math.exp(-Math.pow(temp - enzyme.optTemp, 2) / (2 * Math.pow(3.5, 2)));
+            }
+            return rateMM * phFactor * tempFactor;
+        };
+
+        const simulateTrials = (theoreticalRate, numTrials) => {
+            const trials = [];
+            for (let i = 0; i < numTrials; i++) {
+                const sign = Math.random() > 0.5 ? 1 : -1;
+                const noiseMagnitude = 0.05 + (Math.random() * 0.05); 
+                const noise = 1 + (sign * noiseMagnitude);
+                let actualRate = theoreticalRate * noise;
+                if (actualRate < 0.01) actualRate = 0;
+                trials.push(actualRate);
+            }
+            return trials;
+        };
+
+        const calculateStats = (trials) => {
+            if (trials.length === 0) return { mean: 0, sd: 0 };
+            const mean = trials.reduce((a, b) => a + b, 0) / trials.length;
+            if (trials.length === 1) return { mean, sd: 0 };
+            const variance = trials.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (trials.length - 1);
+            const sd = Math.sqrt(variance);
+            return { mean, sd };
+        };
+
+        // --- DOM ELEMENTS ---
+        const els = {
+            enzymeSelect: document.getElementById('enzymeSelect'),
+            numTrials: document.getElementById('numTrialsSlider'),
+            temp: document.getElementById('tempSlider'),
+            ph: document.getElementById('phSlider'),
+            eConc: document.getElementById('eConcSlider'),
+            sConc: document.getElementById('sConcSlider'),
+            
+            numTrialsDisplay: document.getElementById('numTrialsDisplay'),
+            tempDisplay: document.getElementById('tempDisplay'),
+            phDisplay: document.getElementById('phDisplay'),
+            eConcDisplay: document.getElementById('eConcDisplay'),
+            sConcDisplay: document.getElementById('sConcDisplay'),
+
+            themeGlow: document.getElementById('themeGlow'),
+            themeIcon: document.getElementById('themeIcon'),
+            runBtn: document.getElementById('runBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            xAxisSelect: document.getElementById('xAxisSelect'),
+            downloadGraphBtn: document.getElementById('downloadGraphBtn'),
+
+            emptyState: document.getElementById('emptyState'),
+            resultsArea: document.getElementById('resultsArea'),
+            tableHead: document.getElementById('tableHead'),
+            tableBody: document.getElementById('tableBody'),
+            plotlyChart: document.getElementById('plotlyChart')
+        };
+
+        // --- INITIALIZATION ---
+        function init() {
+            // Populate Dropdown
+            for (const key in ENZYMES) {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = ENZYMES[key].name;
+                els.enzymeSelect.appendChild(opt);
+            }
+
+            // Event Listeners
+            els.enzymeSelect.addEventListener('change', (e) => { state.enzyme = e.target.value; updateTheme(); });
+            
+            const bindSlider = (id, stateKey, displayId, unit = '') => {
+                els[id].addEventListener('input', (e) => {
+                    state[stateKey] = Number(e.target.value);
+                    document.getElementById(displayId).textContent = e.target.value + unit;
+                });
+            };
+            
+            // Map event listeners accurately to the object keys
+            bindSlider('numTrials', 'numTrials', 'numTrialsDisplay');
+            bindSlider('temp', 'temp', 'tempDisplay', '°C');
+            bindSlider('ph', 'ph', 'phDisplay');
+            bindSlider('eConc', 'eConc', 'eConcDisplay');
+            bindSlider('sConc', 'sConc', 'sConcDisplay');
+
+            els.runBtn.addEventListener('click', runExperiment);
+            els.resetBtn.addEventListener('click', resetLab);
+            els.downloadBtn.addEventListener('click', downloadCSV);
+            els.downloadGraphBtn.addEventListener('click', downloadGraph);
+            els.xAxisSelect.addEventListener('change', (e) => { state.xAxisMode = e.target.value; renderChart(); });
+
+            // Fail-safe icon loading
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+            updateTheme();
+        }
+
+        // --- UI UPDATES ---
+        function updateTheme() {
+            const ez = ENZYMES[state.enzyme];
+            const accents = document.querySelectorAll('.text-rose-400, .text-amber-400, .text-yellow-400, .text-violet-400');
+            accents.forEach(el => el.className = el.className.replace(/text-\w+-400/, ez.accent));
+
+            els.themeGlow.className = `absolute top-0 left-0 w-full h-64 bg-gradient-to-br ${ez.color} opacity-10 pointer-events-none transition-all duration-700 blur-2xl`;
+            els.themeIcon.className = `w-8 h-8 ${ez.accent} transition-colors duration-500`;
+            els.runBtn.className = `w-full flex items-center justify-center gap-2 bg-gradient-to-r ${ez.color} hover:brightness-110 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 shadow-lg ${ez.shadow} transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`;
+        }
+
+        function renderTable() {
+            if (state.history.length === 0) {
+                els.emptyState.classList.remove('hidden');
+                els.resultsArea.classList.add('hidden');
+                els.downloadBtn.style.display = 'none';
+                return;
+            }
+
+            els.emptyState.classList.add('hidden');
+            els.resultsArea.classList.remove('hidden');
+
+            const hasCompleted = state.history.some(h => h.status === 'complete');
+            els.downloadBtn.style.display = hasCompleted ? 'flex' : 'none';
+
+            const maxTableTrials = Math.max(...state.history.map(h => h.params.numTrials), 5);
+
+            // Build Header
+            let thHTML = `
+                <tr>
+                    <th class="px-5 py-4 font-semibold">ID</th>
+                    <th class="px-5 py-4 font-semibold">Enzyme</th>
+                    <th class="px-4 py-4 font-semibold text-center border-l border-slate-200">Temp</th>
+                    <th class="px-4 py-4 font-semibold text-center">pH</th>
+                    <th class="px-4 py-4 font-semibold text-center">[E]</th>
+                    <th class="px-4 py-4 font-semibold text-center border-r border-slate-200">[S]</th>
+            `;
+            for(let i=0; i<maxTableTrials; i++) {
+                thHTML += `<th class="px-4 py-4 font-semibold text-center text-slate-400 ${i === maxTableTrials - 1 ? 'border-r border-slate-200' : ''}">T${i+1}</th>`;
+            }
+            thHTML += `
+                    <th class="px-5 py-4 font-bold text-slate-800 bg-slate-100/50">Mean Rate</th>
+                    <th class="px-5 py-4 font-bold text-slate-600 bg-slate-50">SD (±)</th>
+                    <th class="px-4 py-4 font-semibold text-center text-slate-400">Action</th>
+                </tr>
+            `;
+            els.tableHead.innerHTML = thHTML;
+
+            // Build Body
+            let tbHTML = '';
+            state.history.forEach((exp, idx) => {
+                const ez = ENZYMES[exp.params.enzyme];
+                
+                let trialsHTML = '';
+                for(let i=0; i<maxTableTrials; i++) {
+                    let content = '<span class="text-slate-200">-</span>';
+                    if (exp.trials[i] !== undefined) {
+                        content = exp.trials[i].toFixed(1);
+                    } else if (exp.status === 'running' && i < exp.params.numTrials) {
+                        content = '<span class="animate-pulse text-slate-400">--</span>';
+                    }
+                    trialsHTML += `<td class="px-4 py-3 text-center text-slate-500 font-mono text-xs group-hover:text-slate-700 transition-colors">${content}</td>`;
+                }
+
+                // Removed the lucide icon for loading entirely to make it bulletproof
+                const meanContent = exp.status === 'complete' ? exp.stats.mean.toFixed(2) : `<span class="animate-pulse text-slate-400 font-bold">...</span>`;
+                const sdContent = exp.status === 'complete' ? exp.stats.sd.toFixed(2) : '-';
+                const delDisabled = exp.status === 'running' ? 'disabled' : '';
+
+                tbHTML += `
+                    <tr class="hover:bg-slate-50/80 transition-colors group">
+                        <td class="px-5 py-3 font-medium text-slate-900">${idx + 1}</td>
+                        <td class="px-5 py-3 text-slate-600 font-medium">
+                            <span class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-gradient-to-r ${ez.color}"></div>
+                                ${ez.name.split('/')[0].trim()}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100 text-slate-600">${exp.params.temp}°</td>
+                        <td class="px-4 py-3 text-center text-slate-600">${exp.params.ph}</td>
+                        <td class="px-4 py-3 text-center text-slate-600">${exp.params.eConc}</td>
+                        <td class="px-4 py-3 text-center border-r border-slate-100 text-slate-600">${exp.params.sConc}</td>
+                        ${trialsHTML}
+                        <td class="px-5 py-3 text-center border-l border-slate-100 font-bold text-slate-800 bg-slate-50/50 font-mono text-base">${meanContent}</td>
+                        <td class="px-5 py-3 text-center font-medium text-slate-500 bg-slate-50/30 font-mono text-sm">${sdContent}</td>
+                        <td class="px-4 py-3 text-center">
+                            <button onclick="deleteExperiment(${exp.id})" ${delDisabled} class="text-slate-400 hover:text-red-500 transition-colors disabled:opacity-30 p-1.5 rounded-md hover:bg-red-50" title="Delete Trial">
+                                ❌ <!-- Fallback emoji in case icons fail -->
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            els.tableBody.innerHTML = tbHTML;
+            
+            // Fail-safe icon loading
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        function renderChart() {
+            if (typeof Plotly === 'undefined') return; // Fail-safe if Graphing CDN is blocked
+
+            const validHistory = state.history.filter(h => h.status === 'complete');
+            
+            if (validHistory.length === 0) {
+                Plotly.purge(els.plotlyChart);
+                return;
+            }
+
+            let plotData = [...validHistory];
+            if (state.xAxisMode !== 'id') {
+                plotData.sort((a, b) => a.params[state.xAxisMode] - b.params[state.xAxisMode]);
+            }
+
+            const xData = state.xAxisMode === 'id' 
+                ? plotData.map(h => `Exp ${validHistory.indexOf(h) + 1}`)
+                : plotData.map(h => h.params[state.xAxisMode]);
+
+            const yData = plotData.map(h => h.stats.mean);
+            const errorData = plotData.map(h => h.stats.sd);
+            const textData = plotData.map(h => `${ENZYMES[h.params.enzyme].name}<br>T:${h.params.temp}°C, pH:${h.params.ph}`);
+
+            const trace = {
+                x: xData,
+                y: yData,
+                text: textData,
+                error_y: { type: 'data', array: errorData, visible: true, color: '#1e293b', thickness: 2, width: 4 },
+                type: state.xAxisMode === 'id' ? 'bar' : 'scatter',
+                mode: state.xAxisMode === 'id' ? undefined : 'markers+lines',
+                marker: {
+                    size: state.xAxisMode === 'id' ? undefined : 10,
+                    color: plotData.map(h => {
+                        const colorStr = ENZYMES[h.params.enzyme].color;
+                        if(colorStr.includes('rose')) return '#f43f5e';
+                        if(colorStr.includes('amber')) return '#f59e0b';
+                        if(colorStr.includes('yellow')) return '#eab308';
+                        if(colorStr.includes('violet')) return '#8b5cf6';
+                        return '#3b82f6';
+                    }),
+                    opacity: 0.85,
+                    line: { color: 'rgba(0,0,0,0.1)', width: 1 },
+                },
+                line: state.xAxisMode === 'id' ? undefined : { color: '#cbd5e1', width: 2, dash: 'dot' },
+                hovertemplate: '<b>%{text}</b><br>Mean Rate: %{y:.2f} ± %{error_y.array:.2f}<extra></extra>'
+            };
+
+            const getXAxisTitle = () => {
+                switch(state.xAxisMode) {
+                    case 'temp': return 'Temperature (°C)';
+                    case 'ph': return 'pH Level';
+                    case 'sConc': return 'Substrate Concentration (mM)';
+                    case 'eConc': return 'Enzyme Concentration (AU)';
+                    default: return 'Experiment ID';
+                }
+            };
+
+            const layout = {
+                title: { text: 'Mean Reaction Rate Across Experiments', font: { family: 'Inter, sans-serif', size: 18 } },
+                xaxis: { title: getXAxisTitle(), fixedrange: true },
+                yaxis: { title: 'Reaction Rate (Product/sec)', fixedrange: true, rangemode: 'tozero' },
+                margin: { t: 50, l: 60, r: 20, b: 60 },
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                hovermode: 'closest',
+                font: { family: 'Inter, sans-serif' }
+            };
+
+            Plotly.react(els.plotlyChart, [trace], layout, { responsive: true, displayModeBar: false });
+        }
+
+        // --- ACTIONS ---
+        function runExperiment() {
+            if (state.isSimulating) return;
+            state.isSimulating = true;
+            
+            // Update Run Button UI
+            els.runBtn.disabled = true;
+            document.getElementById('runText').textContent = 'Simulating...';
+            
+            // Fail-safe icon update
+            const runIcon = document.getElementById('runIcon');
+            if (typeof lucide !== 'undefined') {
+                runIcon.setAttribute('data-lucide', 'loader-2');
+                runIcon.classList.add('animate-spin');
+                lucide.createIcons();
+            }
+
+            const theoreticalRate = calculateTheoreticalRate(state.enzyme, state.temp, state.ph, state.eConc, state.sConc);
+            const allTrials = simulateTrials(theoreticalRate, state.numTrials);
+            const newId = Date.now();
+
+            const newExp = {
+                id: newId,
+                params: { enzyme: state.enzyme, temp: state.temp, ph: state.ph, eConc: state.eConc, sConc: state.sConc, numTrials: state.numTrials },
+                trials: [],
+                stats: { mean: 0, sd: 0 },
+                status: 'running'
+            };
+
+            state.history.push(newExp);
+            renderTable();
+
+            let currentTrialCount = 0;
+            simulationIntervalRef = setInterval(() => {
+                currentTrialCount++;
+                
+                const expIndex = state.history.findIndex(h => h.id === newId);
+                if (expIndex !== -1) {
+                    state.history[expIndex].trials = allTrials.slice(0, currentTrialCount);
+                    
+                    if (currentTrialCount === state.numTrials) {
+                        state.history[expIndex].status = 'complete';
+                        state.history[expIndex].stats = calculateStats(state.history[expIndex].trials);
+                    }
+                }
+
+                renderTable();
+
+                if (currentTrialCount === state.numTrials) {
+                    clearInterval(simulationIntervalRef);
+                    state.isSimulating = false;
+                    
+                    // Reset UI
+                    els.runBtn.disabled = false;
+                    document.getElementById('runText').textContent = 'Run Experiment';
+                    
+                    // Fail-safe icon update
+                    if (typeof lucide !== 'undefined') {
+                        runIcon.setAttribute('data-lucide', 'play');
+                        runIcon.classList.remove('animate-spin');
+                        lucide.createIcons();
+                    }
+                    
+                    renderChart();
+                }
+            }, 1000);
+        }
+
+        window.deleteExperiment = function(idToRemove) {
+            state.history = state.history.filter(exp => exp.id !== idToRemove);
+            renderTable();
+            renderChart();
+        };
+
+        function resetLab() {
+            if (simulationIntervalRef) clearInterval(simulationIntervalRef);
+            state.isSimulating = false;
+            state.history = [];
+            
+            // Reset form
+            state.enzyme = 'catalase'; els.enzymeSelect.value = 'catalase';
+            state.numTrials = 5; els.numTrials.value = 5; els.numTrialsDisplay.textContent = '5';
+            state.temp = 37; els.temp.value = 37; els.tempDisplay.textContent = '37°C';
+            state.ph = 7; els.ph.value = 7; els.phDisplay.textContent = '7';
+            state.eConc = 50; els.eConc.value = 50; els.eConcDisplay.textContent = '50';
+            state.sConc = 50; els.sConc.value = 50; els.sConcDisplay.textContent = '50';
+
+            els.runBtn.disabled = false;
+            document.getElementById('runText').textContent = 'Run Experiment';
+            
+            const runIcon = document.getElementById('runIcon');
+            if (typeof lucide !== 'undefined') {
+                runIcon.setAttribute('data-lucide', 'play');
+                runIcon.classList.remove('animate-spin');
+                lucide.createIcons();
+            }
+            
+            updateTheme();
+            renderTable();
+            
+            // Explicitly clear graph on reset
+            if (typeof Plotly !== 'undefined') {
+                Plotly.purge(els.plotlyChart);
+            }
+        }
+
+        function downloadCSV() {
+            const completedHistory = state.history.filter(h => h.status === 'complete');
+            if (completedHistory.length === 0) return;
+
+            const maxTrials = Math.max(...completedHistory.map(h => h.params.numTrials));
+            let trialHeaders = Array.from({ length: maxTrials }).map((_, i) => `Trial ${i + 1}`).join(',');
+            let csv = `Experiment ID,Enzyme,Temp (C),pH,E-Conc (AU),S-Conc (mM),Trials,${trialHeaders},Mean Rate,Std Dev\n`;
+            
+            completedHistory.forEach((exp, idx) => {
+                const p = exp.params;
+                const t = exp.trials;
+                let trialValues = Array.from({ length: maxTrials }).map((_, i) => t[i] !== undefined ? t[i].toFixed(2) : '').join(',');
+                csv += `${idx + 1},"${ENZYMES[p.enzyme].name}",${p.temp},${p.ph},${p.eConc},${p.sConc},${p.numTrials},${trialValues},${exp.stats.mean.toFixed(2)},${exp.stats.sd.toFixed(2)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'virtual_enzyme_lab_results.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function downloadGraph() {
+            if (typeof Plotly !== 'undefined' && els.plotlyChart) {
+                Plotly.downloadImage(els.plotlyChart, {
+                    format: 'png',
+                    width: 1200,
+                    height: 800,
+                    filename: 'enzyme_kinetics_graph'
+                });
+            }
+        }
+
+        // Startup
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
