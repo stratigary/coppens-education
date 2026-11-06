@@ -14,7 +14,6 @@ const featured = toolsData.tools.filter(t => t.show !== false).slice(0, 4);
     <div class="wrap" data-live data-page="home">
       <p class="eyebrow">Today in class</p>
       <h1 id="today-date">{fmt.long(today)}</h1>
-      <p class="lede">What each class is doing today, what’s due, and when we meet next. This comes straight from the unit plans. Assignments are posted and turned in on Google Classroom.</p>
       {notes.map(n => {
         const c = n.course && n.course !== 'all' ? courseById(n.course) : null;
         return <div class={`notice ${c ? 'c-' + c.color : ''}`} role="note">{c && <span class="tag sm">{c.short}</span>}<p>{n.text}</p></div>;

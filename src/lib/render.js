@@ -31,34 +31,40 @@ export function sectionSwitch(c, section, label = 'Your section') {
 }
 
 /* ---------- Today card ---------- */
+// Kept deliberately short: which class, what we're doing, what's due. The full detail
+// (in-class lists, topic codes) lives on the course page.
+const DUE_FIELDS = /homework|reading/i;
 export function todayCard(c, lessons, today, section) {
   const sec = c.sections?.length ? section : 'default';
   const s = snapshot(lessons, today, sec);
   const main = s.today || s.next;
-  const status = s.today ? '<p class="status live"><i aria-hidden="true"></i>Class today</p>' : '<p class="status"><i aria-hidden="true"></i>No class today</p>';
-  const head = `<div class="card-top"><span class="tag">${esc(c.short)}</span>${sectionSwitch(c, section)}</div>`;
+  const href = url(`/${c.id}/`);
+  const badge = s.today
+    ? '<span class="when-badge now">Today</span>'
+    : (main ? `<span class="when-badge">Next class · ${esc(fmt.short(dateOf(main, sec)))}</span>` : '<span class="when-badge">No class scheduled</span>');
+  const head = `<header class="card-head">
+      <div class="card-id"><p class="card-short">${esc(c.short)}</p><h2 class="card-name"><a href="${esc(href)}">${esc(c.name)}</a></h2></div>
+      ${sectionSwitch(c, section)}
+    </header>`;
   if (!main) {
-    return `<article class="card c-${esc(c.color)}" data-course="${esc(c.id)}">${head}${status}
-      <h3><a href="${esc(url(`/${c.id}/`))}">${esc(c.name)}</a></h3><p class="muted">No upcoming classes on the calendar yet.</p>
-      <div class="card-foot"><a class="more" href="${esc(url(`/${c.id}/`))}">Course page <span aria-hidden="true">→</span></a></div></article>`;
+    return `<article class="card c-${esc(c.color)} off" data-course="${esc(c.id)}">${head}
+      <div class="card-body">${badge}<p class="muted">No upcoming classes on the calendar yet.</p></div></article>`;
   }
-  const d = dateOf(main, sec), note = noteOf(main, sec);
-  const when = s.today ? `Today${main.session ? ' · ' + main.session : ''}` : `Next class · ${fmt.short(d)}`;
-  const flags = main.flags?.map(pill).join('') || '';
-  const foot = s.today && s.next
-    ? `<p><span class="lbl">Next class</span>${esc(fmt.short(dateOf(s.next, sec)))}: ${esc(s.next.title)}</p>`
-    : (!s.today && s.prev ? `<p><span class="lbl">Last class</span>${esc(fmt.short(dateOf(s.prev, sec)))}: ${esc(s.prev.title)}</p>` : '');
-  return `<article class="card c-${esc(c.color)}" data-course="${esc(c.id)}">
-    ${head}${status}
-    <div>
-      <p class="when">${esc(when)}</p>
-      <h3><a href="${url(`/${c.id}/`)}#d-${esc(d)}">${esc(main.title)}</a></h3>
+  const d = dateOf(main, sec), note = noteOf(main, sec), short = shortOf(main, sec);
+  const flags = (main.flags || []).map(pill).join('');
+  const shortNote = note.replace(/ · short block$/i, '').replace(/^short block$/i, '');
+  const due = (main.fields || []).filter(([k]) => DUE_FIELDS.test(k));
+  const nextLine = s.today && s.next
+    ? `<p class="card-next"><span class="lbl">Next</span>${esc(fmt.short(dateOf(s.next, sec)))} · ${esc(s.next.title)}</p>` : '';
+  return `<article class="card c-${esc(c.color)}${s.today ? '' : ' off'}" data-course="${esc(c.id)}">
+    ${head}
+    <div class="card-body">
+      <div class="card-meta">${badge}${short ? '<span class="sb">Short block</span>' : ''}${shortNote ? `<span class="flag">${esc(shortNote)}</span>` : ''}</div>
+      <h3 class="card-lesson"><a href="${esc(href)}#d-${esc(d)}">${esc(main.title)}</a>${flags}</h3>
       <p class="unitline">${esc(main.unitTitle)}</p>
+      ${due.length ? `<dl class="fields due">${due.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${fieldList(v, 2)}</dd></div>`).join('')}</dl>` : ''}
     </div>
-    ${note ? `<p class="flag">${shortOf(main, sec) ? '<span class="sb">Short block</span> ' : ''}${esc(note.replace(/ · short block$/i, '').replace(/^short block$/i, ''))}</p>` : ''}
-    ${flags || main.codes?.length ? `<div class="chips">${flags}${codes(c, main)}</div>` : ''}
-    ${fields(main, 4)}
-    <div class="card-foot">${foot}<a class="more" href="${esc(url(`/${c.id}/`))}">Full unit calendar <span aria-hidden="true">→</span></a></div>
+    <footer class="card-foot">${nextLine}<a class="more" href="${esc(href)}">${esc(c.short)} calendar <span aria-hidden="true">→</span></a></footer>
   </article>`;
 }
 
