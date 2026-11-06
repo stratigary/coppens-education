@@ -1,5 +1,4 @@
 {
-  "course": "apes",
   "units": [
     {
       "unit": "course",
@@ -292,71 +291,6 @@
         {
           "title": "The Problem With Life Expectancy",
           "url": "https://www.youtube.com/watch?v=i2qckcs_tmI",
-          "kind": "Video"
-        },
-        {
-          "title": "3.1 Daily Video 1",
-          "url": "https://drive.google.com/open?id=1nyL2ceEpcj3EYCp8uq54XW6bFQweaodL",
-          "kind": "Video"
-        },
-        {
-          "title": "3.2 Daily Video 1",
-          "url": "https://drive.google.com/open?id=1CMJqSlf-C9eB2McjX9_GeQvo11li63Ch",
-          "kind": "Video"
-        },
-        {
-          "title": "3.2 Daily Video 2",
-          "url": "https://drive.google.com/open?id=1o_vf-VPbcya1lntdca6M_C-L6gYktLKW",
-          "kind": "Video"
-        },
-        {
-          "title": "3.3 Daily Video 1",
-          "url": "https://drive.google.com/open?id=1M8oywfYZUhI0QdiSXvClL_PgHbPzQAgf",
-          "kind": "Video"
-        },
-        {
-          "title": "3.4 Daily Video 1",
-          "url": "https://drive.google.com/open?id=1Ll5wRtLRTN4GqLOMWpt0oIEuXLBMbv6-",
-          "kind": "Video"
-        },
-        {
-          "title": "3.5 Daily Video 1",
-          "url": "https://drive.google.com/open?id=1YyGX48QVWIarRE2Jkaqoyn9acvTTPd84",
-          "kind": "Video"
-        },
-        {
-          "title": "3.6 Daily Video 1",
-          "url": "https://drive.google.com/open?id=1pOa5EYD-0078FlPbRjR1KVb-SPasYrBl",
-          "kind": "Video"
-        },
-        {
-          "title": "3.6 Daily Video 2",
-          "url": "https://drive.google.com/open?id=1XCxF-C9M361wLY0mnPnaNrmfJCUi_4Cu",
-          "kind": "Video"
-        },
-        {
-          "title": "3.7 Daily Video 1",
-          "url": "https://drive.google.com/open?id=1uOdDp6fzpsCOSq-CqWPAbO0M_I3srsL4",
-          "kind": "Video"
-        },
-        {
-          "title": "3.8 Daily Video 1",
-          "url": "https://drive.google.com/open?id=1UAT3__81r4goVmCCzldmthTYkmWrO0_K",
-          "kind": "Video"
-        },
-        {
-          "title": "3.8 Daily Video 2",
-          "url": "https://drive.google.com/open?id=1vdp4sn7DHAbpZyrqr-mWkd1CBj4X-ZP5",
-          "kind": "Video"
-        },
-        {
-          "title": "3.8 Daily Video 3",
-          "url": "https://drive.google.com/open?id=14gGhc0oLJwg3ZpNi7jCPYlu7z0mvFrog",
-          "kind": "Video"
-        },
-        {
-          "title": "3.9 Daily Video 1",
-          "url": "https://drive.google.com/open?id=1a_ZEdnsa4BnMLhie1KNKY7C4P5dP8DZ6",
           "kind": "Video"
         }
       ]
