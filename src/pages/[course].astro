@@ -45,7 +45,6 @@ const notes = activeAnnouncements(c.id, today).filter(n => n.course === c.id);
         <div>
           <h2 class="sr-only">Unit calendar</h2>
           <div data-calendar set:html={cal.body} />
-          <p class="data-status" data-status aria-live="polite">Showing the saved copy of the calendar.</p>
         </div>
         <aside class="kit" aria-label={`${c.short} resources`}>
           <div class="kit-box">

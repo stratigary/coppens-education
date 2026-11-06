@@ -19,7 +19,6 @@ const featured = toolsData.tools.filter(t => t.show !== false).slice(0, 4);
         return <div class={`notice ${c ? 'c-' + c.color : ''}`} role="note">{c && <span class="tag sm">{c.short}</span>}<p>{n.text}</p></div>;
       })}
       <div class="today" data-cards set:html={cards} />
-      <p class="data-status" data-status aria-live="polite">Showing the saved copy of the calendar.</p>
     </div>
   </div>
   <section class="block" aria-labelledby="kit-h">

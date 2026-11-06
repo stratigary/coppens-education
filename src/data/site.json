@@ -9,7 +9,7 @@
     {
       "text": "Welcome to the new class website. Assignments are still posted and turned in on Google Classroom.",
       "course": "all",
-      "show": true,
+      "show": false,
       "until": "2026-11-30"
     }
   ]
